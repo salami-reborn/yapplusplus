@@ -207,7 +207,7 @@
                 if (!token) return;
                 const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZmt1cXpkZHd2dGRvanpnbWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzk0ODgsImV4cCI6MjEwNzIxNTQ4OH0.kMZcUf8DgMrYFNGtMPW9SGja2m1cRdMq5WJv5XBNgCU';
                 const res = await (this.origFetch || window.fetch)(
-                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?channel_id=eq.${loc}&select=id,author_id&order=created_at.desc&limit=200`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
+                    `https://api.yapper.website/rest/v1/messages?channel_id=eq.${loc}&select=id,author_id&order=created_at.desc&limit=200`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
                 );
                 if (res.ok) {
                     const rows = await res.json();
@@ -232,7 +232,7 @@
                 const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZmt1cXpkZHd2dGRvanpnbWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzk0ODgsImV4cCI6MjEwNzIxNTQ4OH0.kMZcUf8DgMrYFNGtMPW9SGja2m1cRdMq5WJv5XBNgCU';
                 const batch = missing.slice(0, 150);
                 const res = await (this.origFetch || window.fetch)(
-                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?id=in.(${batch.join(',')})&select=id,author_id`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
+                    `https://api.yapper.website/rest/v1/messages?id=in.(${batch.join(',')})&select=id,author_id`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
                 );
                 if (res.ok) {
                     const rows = await res.json();
