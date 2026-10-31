@@ -12,7 +12,6 @@ const passprotocols = ['blob:', 'about:', 'devtools:'];
 
 
 
-
 function parseurl(url) {
     try {
         return new URL(url);
@@ -20,23 +19,20 @@ function parseurl(url) {
         return null;
     }
 }
-
-
-
 function isinternal(url) {
     const parsed = parseurl(url);
     if (!parsed) return false;
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
     return internalhosts.some(h => parsed.hostname === h || parsed.hostname.endsWith('.' + h));
 }
-
-
 function openexternal(url) {
     const parsed = parseurl(url);
     if (!parsed || !externalprotocols.includes(parsed.protocol)) return false;
     shell.openExternal(parsed.href).catch(() => {});
     return true;
 }
+
+
 
 
 
@@ -58,7 +54,6 @@ app.on('web-contents-created', (event, contents) => {
     contents.on('will-navigate', guard);
     contents.on('will-redirect', guard);
 });
-
 
 
 function resolve(relpath) {
@@ -164,9 +159,9 @@ async function update() {
         const response = await fetch(treeurl, { headers: { 'User-Agent': 'YapPlusPlus-App' } });
         if (!response.ok) {
             if (response.status === 403 || response.status === 404) {
-                throw new Error(`GitHub API returned ${response.status}. You may have hit the API rate limit (60 req/hr). Try again later.`);
+                throw new Error(`Github rate limited you for 10 min for spamming this button, you can use a VPN if you REALLY want to update without waiting 10minutes `);
             }
-            throw new Error(`GitHub API returned ${response.status}`);
+            throw new Error(`Github said ${response.status}`);
         }
         const treedata = await response.json();
         let updatedcount = 0;
@@ -216,7 +211,6 @@ async function update() {
 
         return { success: true, count: updatedcount };
     } catch (error) {
-        console.error('[Libyapcore] [E]> Update failed:', error);
         return { success: false, error: error.message };
     }
 }
@@ -296,7 +290,6 @@ app.whenReady().then(() => {
             });
 
         } catch (err) {
-            console.error('Screen picker failed:', err);
             callback({});
         }
     });

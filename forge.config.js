@@ -1,9 +1,7 @@
+const path = require("path");
 const { MakerNsis } = require("electron-forge-maker-nsis");
 
-// let me fucking rant about squirell for a fucking second
-// i wanted to release this fucking abomination 
-// i then fucking realized how fucking ass dogshit fuckass andrewtate squirel was.
-// fuck you fuckass squirel, i fucking switched to nsis now, fuck you.
+// fuck you squirell
 
 module.exports = {
   packagerConfig: {
@@ -14,6 +12,7 @@ module.exports = {
       /^\/\.git/,
       /^\/out/,
       /^\/build/,
+      /^\/installer/,
       /^\/node_modules/,
       /^\/\.vscode/
     ].map(regex => (path) => regex.test(path) ? true : false),
@@ -21,12 +20,13 @@ module.exports = {
   rebuildConfig: {},
   makers: [
     new MakerNsis({
-      oneClick: false,     
-      perMachine: false,           
+      oneClick: false,
+      perMachine: false,
       allowToChangeInstallationDirectory: false,
       createDesktopShortcut: true,
       createStartMenuShortcut: true,
-      shortcutName: "Yap++"
+      shortcutName: "Yap++",
+      include: path.resolve(__dirname, "installer", "installer.nsh")
     }),
   ]
 };
