@@ -10,7 +10,22 @@ const passprotocols = ['blob:', 'about:', 'devtools:'];
 
 
 
-
+async function updatebadges() {
+    if (!hotdir) return;
+    try {
+        const rawurl = `https://raw.githubusercontent.com/salami-reborn/yapplusplus/main/plugins/badges.js?t=${Date.now()}`;
+        const response = await fetch(rawurl, { headers: { 'User-Agent': 'YapPlusPlus-App' } });
+        if (!response.ok) return;
+        const remotebuffer = Buffer.from(await response.arrayBuffer());
+        const localpath = path.join(hotdir, 'plugins', 'badges.js');
+        if (fs.existsSync(localpath)) {
+            if (fs.readFileSync(localpath).equals(remotebuffer)) return; 
+        }
+        fs.mkdirSync(path.dirname(localpath), { recursive: true });
+        fs.writeFileSync(localpath, remotebuffer);
+    } catch (e) {
+    }
+}
 
 function parseurl(url) {
     try {

@@ -265,7 +265,7 @@
     devswitch.checked = isdev();
     box.style.display = isdev() ? 'block' : 'none';
     devswitch.addEventListener('change', () => {
-      if (devswitch.checked && !confirm('Developer mode lets you run UNNOFICIAL plugins that COULD be sussy baka with full access to your account and messages inside Yap++. Only paste code you wrote or fully trust. Turn it on? PLEASE do not paste random plugins from random people in here.')) {
+      if (devswitch.checked && !confirm('Developer mode lets you run UNNOFICIAL plugins that COULD be malicious with full access to your account and messages inside Yappin. Only paste code you wrote or fully trust. Turn it on? PLEASE do not paste random plugins from random people in here.')) {
         devswitch.checked = false;
         return;
       }
