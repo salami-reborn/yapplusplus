@@ -237,8 +237,9 @@ ipcMain.handle('restart-app', () => {
     app.exit(0);
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
     Menu.setApplicationMenu(null);
+    await updatebadges(); 
 
     session.defaultSession.setDisplayMediaRequestHandler(async (request, callback) => {
         try {
