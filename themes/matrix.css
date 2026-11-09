@@ -12,7 +12,7 @@ body, .msg-text, .msg-head, .channel-name, .user-bar-name {
   text-shadow: 0 0 2px rgba(0, 255, 65, 0.4);
 }
 
-a, .msg-author, .mention, .sidebar-channel.active, .channel-item.active {
+a, .mention, .sidebar-channel.active, .channel-item.active {
   color: #00ff41 !important;
   font-weight: bold;
 }

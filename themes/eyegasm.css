@@ -11,7 +11,7 @@ body, .msg-text, .msg-head, .channel-name, .user-bar-name {
   color: #f8f8f2 !important;
 }
 
-a, .msg-author, .mention, .sidebar-channel.active, .channel-item.active {
+a, .mention, .sidebar-channel.active, .channel-item.active {
   color: #ff79c6 !important;
 }
 
