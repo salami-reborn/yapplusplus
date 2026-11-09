@@ -905,8 +905,6 @@
       this.edit_timer = setInterval(function() {
         self.paint();
       }, 1000);
-
-      console.log('[MessageLogger] armed');
     },
 
     stop() {
@@ -1002,8 +1000,6 @@
 
       localStorage.removeItem(storage_key);
       localStorage.removeItem(edit_key);
-
-      console.log('[MessageLogger] disarmed');
     },
   };
 

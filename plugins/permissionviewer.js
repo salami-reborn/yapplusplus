@@ -1,15 +1,13 @@
-// mb yapcord i copy pasted it lowkey
+// mb yapcord i copy pasted yours lel
 
 (function () {
   'use strict';
-
   const ANON_KEY_FALLBACK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZmt1cXpkZHd2dGRvanpnbWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzk0ODgsImV4cCI6MjEwNzIxNTQ4OH0.kMZcUf8DgMrYFNGtMPW9SGja2m1cRdMq5WJv5XBNgCU';
   const SUPABASE_BASE = 'https://dnfkuqzddwvtdojzgmdm.supabase.co';
-
   const permissionsviewer = {
     id: 'permissionsviewer',
     name: 'Permissions Viewer',
-    description: 'See the permissions of roles in a server',
+    description: 'see every role + permission of any server!!',
 
 
 
@@ -111,7 +109,7 @@
     },
     async fetchjson(path) {
       const token = this.gettoken();
-      if (!token) throw new Error('Not signed in yet (no auth token found).');
+      if (!token) throw new Error('didnt work');
       const res = await fetch(SUPABASE_BASE + path, {
         headers: { apikey: this.getanonkey(), authorization: 'Bearer ' + token },
       });
