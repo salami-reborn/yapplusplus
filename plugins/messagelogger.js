@@ -51,7 +51,7 @@
   var messagelogger = {
     id: 'messagelogger',
     name: 'Message Logger',
-    description: 'Keeps deleted messages and edits visible.',
+    description: 'OH.. YOU THOUGHT YOU DELETED THAT?? HEH.. I CAN STILL SEE IT!!',
     css_el: null,
     ghosts: new Map(),
     ghost_nodes: new Map(),

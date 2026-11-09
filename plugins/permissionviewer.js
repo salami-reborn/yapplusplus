@@ -1,3 +1,5 @@
+// mb yapcord i copy pasted it lowkey
+
 (function () {
   'use strict';
 
