@@ -1,0 +1,97 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background-color: #1e1e24 !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background-color: #1e1e24 !important;
+  border-right: 4px solid #2a2a32 !important;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3) !important;
+}
+.sidebar-head {
+  background-color: #1e1e24 !important;
+  border-bottom: 4px solid #2a2a32 !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #cbd5e1 !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #a78bfa !important;
+}
+.channel-item.active {
+  background-color: #1e1e24 !important;
+  border-left: none !important;
+  border-radius: 12px !important;
+  box-shadow: inset 4px 4px 8px #111111, inset -4px -4px 8px rgba(255, 255, 255, 0.05) !important;
+  margin: 4px 8px !important;
+}
+.rail-item {
+  border-radius: 16px !important;
+  transition: all 0.2s ease !important;
+}
+.rail-item.active {
+  box-shadow: inset 4px 4px 8px #111111, inset -4px -4px 8px rgba(255, 255, 255, 0.05) !important;
+  background-color: #1e1e24 !important;
+}
+.msg {
+  border-radius: 16px !important;
+  margin: 8px 16px !important;
+  background-color: #1e1e24 !important;
+  box-shadow: 4px 4px 10px #111111, -4px -4px 10px rgba(255, 255, 255, 0.05) !important;
+  padding: 12px !important;
+}
+.msg:hover {
+  box-shadow: 6px 6px 15px #111111, -6px -6px 15px rgba(255, 255, 255, 0.05) !important;
+  transform: translateY(-2px) !important;
+  transition: all 0.2s ease !important;
+}
+.msg.mentioned {
+  box-shadow: inset 4px 4px 8px #111111, inset -4px -4px 8px rgba(255, 255, 255, 0.05) !important;
+  border-left: 2px solid #a78bfa !important;
+}
+.invite-cta {
+  background-color: #1e1e24 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 4px 4px 8px #111111, -4px -4px 8px rgba(255, 255, 255, 0.05) !important;
+  color: #cbd5e1 !important;
+  transition: all 0.2s ease !important;
+}
+.invite-cta:active {
+  box-shadow: inset 4px 4px 8px #111111, inset -4px -4px 8px rgba(255, 255, 255, 0.05) !important;
+}
+.msg-long-toggle {
+  background-color: #1e1e24 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 4px 4px 8px #111111, -4px -4px 8px rgba(255, 255, 255, 0.05) !important;
+  color: #a78bfa !important;
+}
+.reaction {
+  background-color: #1e1e24 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 2px 2px 5px #111111, -2px -2px 5px rgba(255, 255, 255, 0.05) !important;
+}
+.reaction:active {
+  box-shadow: inset 2px 2px 5px #111111, inset -2px -2px 5px rgba(255, 255, 255, 0.05) !important;
+}
+.reaction.mine {
+  color: #a78bfa !important;
+  box-shadow: inset 2px 2px 5px #111111, inset -2px -2px 5px rgba(255, 255, 255, 0.05) !important;
+}
+.composer-box {
+  background-color: #1e1e24 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: inset 6px 6px 12px #111111, inset -6px -6px 12px rgba(255, 255, 255, 0.05) !important;
+  padding: 8px 16px !important;
+}
+.composer-box textarea {
+  color: #cbd5e1 !important;
+}
+.composer-box:focus-within {
+  box-shadow: inset 8px 8px 16px #111111, inset -8px -8px 16px rgba(255, 255, 255, 0.05) !important;
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #1e1e24; }
+::-webkit-scrollbar-thumb { background: #111111; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a78bfa; }

@@ -1,0 +1,110 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background-color: #e0e0e0 !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background-color: #121212 !important;
+  border-right: 4px solid #ccff00 !important;
+}
+.sidebar-head {
+  background-color: #121212 !important;
+  border-bottom: 4px solid #ccff00 !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #121212 !important;
+}
+nav.rail body, aside.sidebar body, .side-panel body, .user-bar body,
+nav.rail .channel-name, aside.sidebar .channel-name, .side-panel .channel-name, .user-bar .channel-name {
+  color: #e0e0e0 !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #0055ff !important;
+  text-decoration: underline !important;
+  font-weight: bold !important;
+}
+.channel-item.active {
+  background-color: #ccff00 !important;
+  color: #121212 !important;
+  border-left: 4px solid #121212 !important;
+  border-radius: 0 !important;
+}
+.channel-item.active * {
+  color: #121212 !important;
+}
+.rail-item {
+  border-radius: 0 !important;
+  border: 2px solid transparent !important;
+}
+.rail-item.active {
+  background-color: #ccff00 !important;
+  border: 2px solid #121212 !important;
+}
+.msg {
+  border-radius: 0 !important;
+  border-left: 2px solid transparent !important;
+  animation: crtFlicker 4s infinite alternate !important;
+}
+@keyframes crtFlicker {
+  0% { opacity: 1; }
+  5% { opacity: 0.95; }
+  10% { opacity: 1; }
+  50% { opacity: 0.98; }
+  55% { opacity: 1; }
+}
+.msg:hover {
+  background-color: rgba(0, 85, 255, 0.1) !important;
+  border-left: 2px solid #0055ff !important;
+}
+.msg.mentioned {
+  background-color: #ccff00 !important;
+  border: 2px solid #121212 !important;
+  color: #121212 !important;
+}
+.msg.mentioned * {
+  color: #121212 !important;
+}
+.invite-cta {
+  background-color: #121212 !important;
+  color: #ccff00 !important;
+  border-radius: 0 !important;
+  border: 2px solid #ccff00 !important;
+  box-shadow: 4px 4px 0px #ccff00 !important;
+  transition: all 0.1s !important;
+}
+.invite-cta:hover {
+  transform: translate(2px, 2px) !important;
+  box-shadow: 2px 2px 0px #ccff00 !important;
+}
+.msg-long-toggle {
+  background-color: #121212 !important;
+  color: #ccff00 !important;
+  border: 2px solid #ccff00 !important;
+  border-radius: 0 !important;
+}
+.reaction {
+  background-color: #ffffff !important;
+  border: 2px solid #121212 !important;
+  border-radius: 0 !important;
+}
+.reaction.mine {
+  background-color: #0055ff !important;
+  color: #ffffff !important;
+  border-color: #0055ff !important;
+}
+.composer-box {
+  background-color: #ffffff !important;
+  border: 4px solid #121212 !important;
+  border-radius: 0 !important;
+  box-shadow: 6px 6px 0px #121212 !important;
+}
+.composer-box textarea {
+  color: #121212 !important;
+  font-family: monospace !important;
+}
+.composer-box:focus-within {
+  border-color: #0055ff !important;
+  box-shadow: 6px 6px 0px #0055ff !important;
+}
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #e0e0e0; border-left: 2px solid #121212; }
+::-webkit-scrollbar-thumb { background: #121212; border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: #ccff00; border: 2px solid #121212; }

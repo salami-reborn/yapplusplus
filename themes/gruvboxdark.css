@@ -1,0 +1,47 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background-color: #282828 !important;
+}
+
+nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background-color: #1d2021 !important;
+  border-right: 1px solid #3c3836 !important;
+}
+
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #ebdbb2 !important;
+}
+
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #fabd2f !important;
+}
+
+.channel-item.active {
+  background-color: #3c3836 !important;
+  border-left: 3px solid #fabd2f !important;
+}
+
+.msg:hover {
+  background-color: rgba(60, 56, 54, 0.5) !important;
+}
+
+.msg.mentioned {
+  background-color: rgba(250, 189, 47, 0.15) !important;
+  border-left: 2px solid #d79921 !important;
+}
+
+.composer-box {
+  background-color: #32302f !important;
+  border: 1px solid #3c3836 !important;
+}
+.composer-box textarea {
+  color: #ebdbb2 !important;
+}
+.composer-box:focus-within {
+  border-color: #fabd2f !important;
+  box-shadow: 0 0 10px rgba(250, 189, 47, 0.2);
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #282828; }
+::-webkit-scrollbar-thumb { background: #3c3836; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #fabd2f; }

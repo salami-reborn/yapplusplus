@@ -1,0 +1,82 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background-color: #000000 !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background-color: #0a0a0a !important;
+  border-color: #fcee0a !important;
+  border-width: 2px !important;
+}
+.sidebar-head {
+  background-color: #000000 !important;
+  border-bottom: 2px solid #00f0ff !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #00f0ff !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #fcee0a !important;
+  text-transform: uppercase !important;
+  font-weight: bold !important;
+}
+.channel-item.active {
+  background-color: #fcee0a !important;
+  color: #000000 !important;
+  border-left: 4px solid #00f0ff !important;
+}
+.channel-item.active * {
+  color: #000000 !important;
+}
+.rail-pill.on {
+  background-color: #fcee0a !important;
+}
+.rail-item.active {
+  background-color: #fcee0a !important;
+}
+.msg:hover {
+  background-color: #111111 !important;
+  border-left: 2px solid #00f0ff !important;
+}
+.msg.mentioned {
+  background-color: rgba(252, 238, 10, 0.1) !important;
+  border: 1px solid #fcee0a !important;
+}
+.invite-cta {
+  background-color: #000000 !important;
+  border: 2px solid #00f0ff !important;
+  color: #00f0ff !important;
+}
+.invite-cta:hover {
+  background-color: #00f0ff !important;
+  color: #000000 !important;
+}
+.msg-long-toggle {
+  background-color: #000000 !important;
+  color: #fcee0a !important;
+  border: 2px solid #fcee0a !important;
+  text-transform: uppercase !important;
+}
+.reaction {
+  background-color: #000000 !important;
+  border: 1px solid #00f0ff !important;
+}
+.reaction.mine {
+  background-color: #00f0ff !important;
+  border-color: #000000 !important;
+}
+.composer-box {
+  background-color: #000000 !important;
+  border: 2px solid #00f0ff !important;
+  border-radius: 0 !important;
+}
+.composer-box textarea {
+  color: #fcee0a !important;
+  font-family: monospace !important;
+}
+.composer-box:focus-within {
+  border-color: #fcee0a !important;
+  box-shadow: 0 0 15px rgba(252, 238, 10, 0.4);
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #000000; }
+::-webkit-scrollbar-thumb { background: #fcee0a; border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: #00f0ff; }

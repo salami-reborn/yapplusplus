@@ -1,0 +1,93 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background: linear-gradient(180deg, #1a0b2e 0%, #11051e 100%) !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background: rgba(18, 6, 32, 0.8) !important;
+  border-color: #3d1c6e !important;
+}
+.sidebar-head {
+  background: transparent !important;
+  border-bottom: 1px solid #3d1c6e !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #e0d4f5 !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #ff00ff !important;
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.6) !important;
+}
+.channel-item.active {
+  background: linear-gradient(90deg, rgba(255, 0, 255, 0.2) 0%, transparent 100%) !important;
+  border-left: 3px solid #ff00ff !important;
+}
+.rail-pill.on {
+  background-color: #ff00ff !important;
+  animation: neonPulse 2s infinite !important;
+}
+@keyframes neonPulse {
+  0% { box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+  50% { box-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff, 0 0 30px #ff00ff; }
+  100% { box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff; }
+}
+.rail-item.active {
+  background-color: #2b1055 !important;
+}
+.msg {
+  border-bottom: 1px solid rgba(255, 0, 255, 0.05) !important;
+  transition: all 0.3s ease !important;
+}
+.msg:hover {
+  background: rgba(255, 0, 255, 0.05) !important;
+  box-shadow: inset 0 0 10px rgba(255, 0, 255, 0.1) !important;
+}
+.msg.mentioned {
+  background: rgba(255, 0, 255, 0.1) !important;
+  border-left: 2px solid #ff00ff !important;
+}
+.invite-cta {
+  background: transparent !important;
+  color: #00ffff !important;
+  border: 1px solid #00ffff !important;
+  text-shadow: 0 0 5px #00ffff !important;
+  transition: all 0.3s ease !important;
+}
+.invite-cta:hover {
+  background: rgba(0, 255, 255, 0.1) !important;
+  box-shadow: 0 0 15px rgba(0, 255, 255, 0.3) !important;
+}
+.msg-long-toggle {
+  background: transparent !important;
+  color: #ff00ff !important;
+  border: 1px solid #ff00ff !important;
+}
+.reaction {
+  background: rgba(18, 6, 32, 0.8) !important;
+  border: 1px solid #3d1c6e !important;
+  transition: all 0.2s ease !important;
+}
+.reaction:hover {
+  border-color: #ff00ff !important;
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.3) !important;
+}
+.reaction.mine {
+  background: rgba(255, 0, 255, 0.15) !important;
+  border-color: #ff00ff !important;
+}
+.composer-box {
+  background: rgba(18, 6, 32, 0.9) !important;
+  border: 1px solid #3d1c6e !important;
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+.composer-box textarea {
+  color: #e0d4f5 !important;
+  text-shadow: 0 0 2px rgba(224, 212, 245, 0.3) !important;
+}
+.composer-box:focus-within {
+  border-color: #ff00ff !important;
+  box-shadow: 0 0 20px rgba(255, 0, 255, 0.4) !important;
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #11051e; }
+::-webkit-scrollbar-thumb { background: #3d1c6e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #ff00ff; box-shadow: 0 0 10px #ff00ff; }

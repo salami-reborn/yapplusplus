@@ -1,0 +1,103 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%) !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background: rgba(30, 30, 47, 0.5) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.sidebar-head {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #e2e2e2 !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #a78bfa !important;
+  transition: color 0.3s ease !important;
+}
+.channel-item.active {
+  background: rgba(167, 139, 250, 0.15) !important;
+  border-left: 3px solid #a78bfa !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+.rail-item {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+.rail-item:hover {
+  transform: scale(1.1) !important;
+}
+.rail-item.active {
+  background: rgba(167, 139, 250, 0.2) !important;
+}
+.msg {
+  animation: slideUpFade 0.4s ease-out forwards !important;
+  border-radius: 8px !important;
+  margin: 4px 8px !important;
+}
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.msg:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+.msg.mentioned {
+  background: rgba(167, 139, 250, 0.1) !important;
+  border-left: 2px solid #a78bfa !important;
+}
+.invite-cta {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #e2e2e2 !important;
+  transition: all 0.3s ease !important;
+}
+.invite-cta:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+.msg-long-toggle {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #a78bfa !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+.msg-long-toggle:hover {
+  background: rgba(167, 139, 250, 0.2) !important;
+}
+.reaction {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  transition: transform 0.2s ease, background 0.2s ease !important;
+}
+.reaction:hover {
+  transform: translateY(-2px) scale(1.05) !important;
+}
+.reaction.mine {
+  background: rgba(167, 139, 250, 0.2) !important;
+  border-color: #a78bfa !important;
+}
+.composer-box {
+  background: rgba(0, 0, 0, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+.composer-box textarea {
+  color: #e2e2e2 !important;
+}
+.composer-box:focus-within {
+  border-color: #a78bfa !important;
+  box-shadow: 0 4px 30px rgba(167, 139, 250, 0.2) !important;
+  transform: translateY(-2px) !important;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a78bfa; }

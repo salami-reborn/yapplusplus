@@ -1,0 +1,97 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background-color: #e6e9f0 !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background-color: #e6e9f0 !important;
+  border-right: 4px solid #ffffff !important;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.05) !important;
+}
+.sidebar-head {
+  background-color: #e6e9f0 !important;
+  border-bottom: 4px solid #ffffff !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #4a5568 !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #6b46c1 !important;
+}
+.channel-item.active {
+  background-color: #e6e9f0 !important;
+  border-left: none !important;
+  border-radius: 12px !important;
+  box-shadow: inset 4px 4px 8px #c8ccd4, inset -4px -4px 8px #ffffff !important;
+  margin: 4px 8px !important;
+}
+.rail-item {
+  border-radius: 16px !important;
+  transition: all 0.2s ease !important;
+}
+.rail-item.active {
+  box-shadow: inset 4px 4px 8px #c8ccd4, inset -4px -4px 8px #ffffff !important;
+  background-color: #e6e9f0 !important;
+}
+.msg {
+  border-radius: 16px !important;
+  margin: 8px 16px !important;
+  background-color: #e6e9f0 !important;
+  box-shadow: 4px 4px 10px #c8ccd4, -4px -4px 10px #ffffff !important;
+  padding: 12px !important;
+}
+.msg:hover {
+  box-shadow: 6px 6px 15px #c8ccd4, -6px -6px 15px #ffffff !important;
+  transform: translateY(-2px) !important;
+  transition: all 0.2s ease !important;
+}
+.msg.mentioned {
+  box-shadow: inset 4px 4px 8px #c8ccd4, inset -4px -4px 8px #ffffff !important;
+  border-left: 2px solid #6b46c1 !important;
+}
+.invite-cta {
+  background-color: #e6e9f0 !important;
+  border: none !important;
+  border-radius: 16px !important;
+  box-shadow: 4px 4px 8px #c8ccd4, -4px -4px 8px #ffffff !important;
+  color: #4a5568 !important;
+  transition: all 0.2s ease !important;
+}
+.invite-cta:active {
+  box-shadow: inset 4px 4px 8px #c8ccd4, inset -4px -4px 8px #ffffff !important;
+}
+.msg-long-toggle {
+  background-color: #e6e9f0 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 4px 4px 8px #c8ccd4, -4px -4px 8px #ffffff !important;
+  color: #6b46c1 !important;
+}
+.reaction {
+  background-color: #e6e9f0 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: 2px 2px 5px #c8ccd4, -2px -2px 5px #ffffff !important;
+}
+.reaction:active {
+  box-shadow: inset 2px 2px 5px #c8ccd4, inset -2px -2px 5px #ffffff !important;
+}
+.reaction.mine {
+  color: #6b46c1 !important;
+  box-shadow: inset 2px 2px 5px #c8ccd4, inset -2px -2px 5px #ffffff !important;
+}
+.composer-box {
+  background-color: #e6e9f0 !important;
+  border: none !important;
+  border-radius: 20px !important;
+  box-shadow: inset 6px 6px 12px #c8ccd4, inset -6px -6px 12px #ffffff !important;
+  padding: 8px 16px !important;
+}
+.composer-box textarea {
+  color: #4a5568 !important;
+}
+.composer-box:focus-within {
+  box-shadow: inset 8px 8px 16px #c8ccd4, inset -8px -8px 16px #ffffff !important;
+}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #e6e9f0; }
+::-webkit-scrollbar-thumb { background: #c8ccd4; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
