@@ -174,6 +174,16 @@ function gitblobsha(buf) {
         .digest('hex');
 }
 
+// Contribution by @duckycore12
+async function gettree(repoowner, reponame, branch, headers) {
+    const manifesturl = `https://raw.githubusercontent.com/${repoowner}/${reponame}/${branch}/manifest.json?t=${Date.now()}`;
+    const res = await fetch(manifesturl, { headers });
+    if (!res.ok) throw new Error(`Couldn't fetch manifest.json (${res.status})`);
+    const manifest = await res.json();
+    if (!manifest || typeof manifest !== 'object') throw new Error('manifest.json is invalid');
+    return Object.entries(manifest).map(([p, sha]) => ({ type: 'blob', path: p, sha }));
+}
+
 async function update() {
     const repoowner = 'salami-reborn';
     const reponame = 'yapplusplus';
@@ -181,19 +191,10 @@ async function update() {
     const headers = { 'User-Agent': 'YapPlusPlus-App' };
 
     try {
-        // The only GitHub API call (1 request per update)
-        const treeurl = `https://api.github.com/repos/${repoowner}/${reponame}/git/trees/${branch}?recursive=1`;
-        const response = await fetch(treeurl, { headers });
-        if (!response.ok) {
-            if (response.status === 403 || response.status === 429) {
-                throw new Error('GitHub rate limited you, try again in a while (or use a VPN).');
-            }
-            throw new Error(`GitHub said ${response.status}`);
-        }
-        const treedata = await response.json();
+        const tree = await gettree(repoowner, reponame, branch, headers);
 
         const safepaths = /^(app\.js|main\.js|preload\.js|html\/client\.html|assets\/.*|plugins\/.*|themes\/.*)$/;
-        const files = (treedata.tree || []).filter(f => f.type === 'blob' && safepaths.test(f.path));
+        const files = tree.filter(f => f.type === 'blob' && safepaths.test(f.path));
         const validpaths = new Set(files.map(f => f.path));
 
         // Only download files that are missing or different
