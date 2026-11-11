@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, Menu, shell, desktopCapturer, session } = require('electron');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const hotdir = process.env.YAPPLUS_HOT_DIR;
 const appdir = process.env.YAPPLUS_APP_DIR;
 const internalhosts = ['yapper.website', 'yapin.gg'];
@@ -165,54 +166,76 @@ ipcMain.handle('open-external', async (event, url) => {
     }
 });
 
+// Contributions by @duckycore12
+function gitblobsha(buf) {
+    return crypto.createHash('sha1')
+        .update(`blob ${buf.length}\0`)
+        .update(buf)
+        .digest('hex');
+}
+
 async function update() {
     const repoowner = 'salami-reborn';
     const reponame = 'yapplusplus';
     const branch = 'main';
+    const headers = { 'User-Agent': 'YapPlusPlus-App' };
+
     try {
+        // The only GitHub API call (1 request per update)
         const treeurl = `https://api.github.com/repos/${repoowner}/${reponame}/git/trees/${branch}?recursive=1`;
-        const response = await fetch(treeurl, { headers: { 'User-Agent': 'YapPlusPlus-App' } });
+        const response = await fetch(treeurl, { headers });
         if (!response.ok) {
-            if (response.status === 403 || response.status === 404) {
-                throw new Error(`Github rate limited you for 10 min for spamming this button, you can use a VPN if you REALLY want to update without waiting 10minutes `);
+            if (response.status === 403 || response.status === 429) {
+                throw new Error('GitHub rate limited you, try again in a while (or use a VPN).');
             }
-            throw new Error(`Github said ${response.status}`);
+            throw new Error(`GitHub said ${response.status}`);
         }
         const treedata = await response.json();
-        let updatedcount = 0;
-        const validpaths = new Set();
-        const safepaths = /^(app\.js|main\.js|preload\.js|html\/client\.html|assets\/.*|plugins\/.*|themes\/.*)$/;
-        for (const file of treedata.tree || []) {
-            if (file.type !== 'blob' || !safepaths.test(file.path)) continue;
-            validpaths.add(file.path);
-            const localpath = path.join(hotdir, file.path);
-            const bloburl = `https://api.github.com/repos/${repoowner}/${reponame}/git/blobs/${file.sha}`;
-            const blobres = await fetch(bloburl, { headers: { 'User-Agent': 'YapPlusPlus-App' } });
-            if (!blobres.ok) continue;
-            const blobdata = await blobres.json();
-            if (blobdata.encoding !== 'base64') continue;
-            const remotebuffer = Buffer.from(blobdata.content, 'base64');
-            let needsupdate = false;
-            if (!fs.existsSync(localpath)) {
-                needsupdate = true;
-            } else {
-                const localbuffer = fs.readFileSync(localpath);
-                if (!localbuffer.equals(remotebuffer)) {
-                    needsupdate = true;
-                }
-            }
 
-            if (needsupdate) {
+        const safepaths = /^(app\.js|main\.js|preload\.js|html\/client\.html|assets\/.*|plugins\/.*|themes\/.*)$/;
+        const files = (treedata.tree || []).filter(f => f.type === 'blob' && safepaths.test(f.path));
+        const validpaths = new Set(files.map(f => f.path));
+
+        // Only download files that are missing or different
+        const todo = files.filter(f => {
+            const localpath = path.join(hotdir, f.path);
+            if (!fs.existsSync(localpath)) return true;
+            return gitblobsha(fs.readFileSync(localpath)) !== f.sha;
+        });
+
+        let updatedcount = 0;
+        const failed = [];
+
+        async function download(file) {
+            // raw.githubusercontent.com is not subject to the API rate limit
+            const rawurl = `https://raw.githubusercontent.com/${repoowner}/${reponame}/${branch}/${file.path.split('/').map(encodeURIComponent).join('/')}`;
+            try {
+                const res = await fetch(rawurl, { headers });
+                if (!res.ok) throw new Error(String(res.status));
+                const buf = Buffer.from(await res.arrayBuffer());
+                const localpath = path.join(hotdir, file.path);
                 fs.mkdirSync(path.dirname(localpath), { recursive: true });
-                fs.writeFileSync(localpath, remotebuffer);
+                fs.writeFileSync(localpath, buf);
                 updatedcount++;
+            } catch (e) {
+                failed.push(file.path);
             }
         }
 
+        // Small batches so we don't hammer the connection
+        const BATCH = 8;
+        for (let i = 0; i < todo.length; i += BATCH) {
+            await Promise.all(todo.slice(i, i + BATCH).map(download));
+        }
+
+        if (failed.length) {
+            return { success: false, error: `Failed to download: ${failed.join(', ')}`, count: updatedcount };
+        }
+
+        // Only clean up when everything succeeded
         function cleandir(dir) {
             if (!fs.existsSync(dir)) return;
-            const files = fs.readdirSync(dir);
-            for (const file of files) {
+            for (const file of fs.readdirSync(dir)) {
                 const fullpath = path.join(dir, file);
                 const relpath = path.relative(hotdir, fullpath).replace(/\\/g, '/');
                 if (fs.statSync(fullpath).isDirectory()) {

@@ -536,5 +536,5 @@
       this.userbyusername.clear();
     },
   };
-  window.pluginhost.register(permissionsviewer);
+  window.PluginHost.register(permissionsviewer);
 })();
