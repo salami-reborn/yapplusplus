@@ -184,7 +184,7 @@ async function gettree(repoowner, reponame, branch, headers) {
     return Object.entries(manifest).map(([p, sha]) => ({ type: 'blob', path: p, sha }));
 }
 
-async function update() {
+async function update() { // contribution by @duckycore12
     const repoowner = 'salami-reborn';
     const reponame = 'yapplusplus';
     const branch = 'main';
