@@ -54,7 +54,6 @@ function openexternal(url) {
 
 app.on('web-contents-created', (event, contents) => {
     contents.setWindowOpenHandler(({ url }) => {
-        if (isinternal(url)) return { action: 'allow' };
         openexternal(url);
         return { action: 'deny' };
     });
@@ -62,15 +61,15 @@ app.on('web-contents-created', (event, contents) => {
         const target = navevent.url || legacyurl || '';
         const parsed = parseurl(target);
         if (parsed && passprotocols.includes(parsed.protocol)) return;
-        if (isinternal(target)) return;
-        if (parsed && parsed.protocol === 'file:' && contents.getType() !== 'webview') return;
+        if (parsed && parsed.protocol === 'file:') return;
+        if (contents.getType() === 'webview') return;
         navevent.preventDefault();
         openexternal(target);
     };
+    
     contents.on('will-navigate', guard);
     contents.on('will-redirect', guard);
 });
-
 
 function resolve(relpath) {
     if (hotdir) {
