@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/Banner.png" alt="yapplusplusbanner" width="400" />
+  <img src="assets/YAPPLUSPLUSUNFINISHEDBANNER.gif" alt="yapplusplusbanner" width="400" />
 </p>
 
 <h1 align="center">😼 Yap++ 😼</h1>
