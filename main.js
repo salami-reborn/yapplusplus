@@ -15,16 +15,31 @@ async function updatebadges() {
     if (!hotdir) return;
     try {
         const rawurl = `https://raw.githubusercontent.com/salami-reborn/yapplusplus/main/plugins/badges.js?t=${Date.now()}`;
-        const response = await fetch(rawurl, { headers: { 'User-Agent': 'YapPlusPlus-App' } });
-        if (!response.ok) return;
+        const response = await fetch(rawurl, { 
+            headers: { 'User-Agent': 'YapPlusPlus-App', 'Cache-Control': 'no-cache' },
+            cache: 'no-store'
+        });
+        if (!response.ok) {
+            console.warn('[Yap++ Updater] Failed to fetch badges.js:', response.status);
+            return;
+        }
         const remotebuffer = Buffer.from(await response.arrayBuffer());
         const localpath = path.join(hotdir, 'plugins', 'badges.js');
         if (fs.existsSync(localpath)) {
-            if (fs.readFileSync(localpath).equals(remotebuffer)) return; 
+            const localbuffer = fs.readFileSync(localpath);
+            if (gitblobsha(localbuffer) === gitblobsha(remotebuffer)) {
+                console.log('[Yap++ Updater] badges.js is already up to date.');
+                return; 
+            }
         }
-        fs.mkdirSync(path.dirname(localpath), { recursive: true });
+        if (!fs.existsSync(path.dirname(localpath))) {
+            fs.mkdirSync(path.dirname(localpath), { recursive: true });
+        }
         fs.writeFileSync(localpath, remotebuffer);
+        console.log('[Yap++ Updater] Successfully updated badges.js');
+        
     } catch (e) {
+        console.error('[Yap++ Updater] Error updating badges:', e.message);
     }
 }
 
