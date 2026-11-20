@@ -125,9 +125,8 @@
             fanumtaxxbadge('f2c4c4c8-d455-4f75-864e-dcbfe04ec71d', `tuffestbadgever`, A.whitebox || '');
             fanumtaxxbadge('217ccb8c-3d7e-4720-a614-3788bf5dc3a9', `I feel so sigma!`, A.sigma || '');
             fanumtaxxbadge('d70e83db-e45d-47be-9f1b-0ca8ea1b42d7', `Certified chud basement dweller`, A.chud || '');
-            fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', `1/3 Owners of yap!!`, A.yppIcon || '');
-            fanumtaxxbadge('da302abc-7fa0-4f7a-9f3f-536d6eadfc71', `1/3 Owners of yap!!`, A.yppIcon || '');
-            fanumtaxxbadge('1e15f614-cb69-44a8-8684-b4cd0c0f5834', `1/3 Owners of yap!!`, A.yppIcon || '');
+            fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', `1/2 Owners/Operators of yap!!`, A.yppIcon || '');
+            fanumtaxxbadge('da302abc-7fa0-4f7a-9f3f-536d6eadfc71', `1/2 Owners/Operators of yap!!`, A.yppIcon || '');
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('13aa6b8b-f756-4dcb-b791-f6086ad1806e', `My alt. If this is online then I'm either testing a plugin/idk`, A.yppIcon || '');
