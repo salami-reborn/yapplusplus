@@ -13,33 +13,70 @@ const passprotocols = ['blob:', 'about:', 'devtools:'];
 
 async function updatebadges() {
     if (!hotdir) return;
+
+    const headers = {
+        'User-Agent': 'YapPlusPlus-App',
+        'Cache-Control': 'no-cache'
+    };
+    const baseurl = 'https://raw.githubusercontent.com/salami-reborn/yapplusplus/main/';
+
     try {
-        const rawurl = `https://raw.githubusercontent.com/salami-reborn/yapplusplus/main/plugins/badges.js?t=${Date.now()}`;
-        const response = await fetch(rawurl, { 
-            headers: { 'User-Agent': 'YapPlusPlus-App', 'Cache-Control': 'no-cache' },
-            cache: 'no-store'
-        });
-        if (!response.ok) {
-            console.warn('[Yap++ Updater] Failed to fetch badges.js:', response.status);
+        const pluginurl = `${baseurl}plugins/badges.js?t=${Date.now()}`;
+        const pluginres = await fetch(pluginurl, { headers, cache: 'no-store' });
+        
+        if (pluginres.ok) {
+            const remotebuffer = Buffer.from(await pluginres.arrayBuffer());
+            const localpath = path.join(hotdir, 'plugins', 'badges.js');
+            
+            if (!fs.existsSync(path.dirname(localpath))) {
+                fs.mkdirSync(path.dirname(localpath), { recursive: true });
+            }
+            
+            fs.writeFileSync(localpath, remotebuffer);
+        } else {
+        }
+    } catch (e) {
+        console.error('badges. FUCK. this one: ', e.message);
+    }
+    try {
+        const apires = await fetch('https://api.github.com/repos/salami-reborn/yapplusplus/git/trees/main?recursive=1', { headers });
+        if (!apires.ok) {
             return;
         }
-        const remotebuffer = Buffer.from(await response.arrayBuffer());
-        const localpath = path.join(hotdir, 'plugins', 'badges.js');
-        if (fs.existsSync(localpath)) {
-            const localbuffer = fs.readFileSync(localpath);
-            if (gitblobsha(localbuffer) === gitblobsha(remotebuffer)) {
-                console.log('[Yap++ Updater] badges.js is already up to date.');
-                return; 
+        const tree = await apires.json();
+        if (!tree || !tree.tree) return;
+        const assetfiles = tree.tree.filter(f => f.type === 'blob' && f.path.startsWith('assets/'));
+        await Promise.all(assetfiles.map(async (file) => {
+            try {
+                const asseturl = `${baseurl}${file.path}?t=${Date.now()}`;
+                const assetres = await fetch(asseturl, { headers, cache: 'no-store' });
+                
+                if (!assetres.ok) return;
+                
+                const remotebuffer = Buffer.from(await assetres.arrayBuffer());
+                const localpath = path.join(hotdir, file.path);
+                
+                if (!fs.existsSync(path.dirname(localpath))) {
+                    fs.mkdirSync(path.dirname(localpath), { recursive: true });
+                }
+
+                if (fs.existsSync(localpath)) {
+                    const localbuffer = fs.readFileSync(localpath);
+                    if (gitblobsha(localbuffer) === gitblobsha(remotebuffer)) {
+                        return;
+                    }
+                }
+                
+                fs.writeFileSync(localpath, remotebuffer);
+                console.log(`[Yap++ Updater] Successfully updated asset: ${file.path}`);
+                
+            } catch (e) {
+                console.error(`[Yap++ Updater] Error updating asset ${file.path}:`, e.message);
             }
-        }
-        if (!fs.existsSync(path.dirname(localpath))) {
-            fs.mkdirSync(path.dirname(localpath), { recursive: true });
-        }
-        fs.writeFileSync(localpath, remotebuffer);
-        console.log('[Yap++ Updater] Successfully updated badges.js');
-        
+        }));
+
     } catch (e) {
-        console.error('[Yap++ Updater] Error updating badges:', e.message);
+        console.error('[Yap++ Updater] Error fetching dynamic asset list:', e.message);
     }
 }
 
