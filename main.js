@@ -195,8 +195,6 @@ async function update() { // contribution by @duckycore12
         const safepaths = /^(app\.js|main\.js|preload\.js|html\/client\.html|assets\/.*|plugins\/.*|themes\/.*)$/;
         const files = tree.filter(f => f.type === 'blob' && safepaths.test(f.path));
         const validpaths = new Set(files.map(f => f.path));
-
-        // Only download files that are missing or different
         const todo = files.filter(f => {
             const localpath = path.join(hotdir, f.path);
             if (!fs.existsSync(localpath)) return true;
@@ -207,7 +205,6 @@ async function update() { // contribution by @duckycore12
         const failed = [];
 
         async function download(file) {
-            // raw.githubusercontent.com is not subject to the API rate limit
             const rawurl = `https://raw.githubusercontent.com/${repoowner}/${reponame}/${branch}/${file.path.split('/').map(encodeURIComponent).join('/')}`;
             try {
                 const res = await fetch(rawurl, { headers });
@@ -221,8 +218,6 @@ async function update() { // contribution by @duckycore12
                 failed.push(file.path);
             }
         }
-
-        // Small batches so we don't hammer the connection
         const BATCH = 8;
         for (let i = 0; i < todo.length; i += BATCH) {
             await Promise.all(todo.slice(i, i + BATCH).map(download));
@@ -231,8 +226,6 @@ async function update() { // contribution by @duckycore12
         if (failed.length) {
             return { success: false, error: `Failed to download: ${failed.join(', ')}`, count: updatedcount };
         }
-
-        // Only clean up when everything succeeded
         function cleandir(dir) {
             if (!fs.existsSync(dir)) return;
             for (const file of fs.readdirSync(dir)) {
