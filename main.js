@@ -10,7 +10,6 @@ const passprotocols = ['blob:', 'about:', 'devtools:'];
 
 
 
-
 async function updatebadges() {
     if (!hotdir) return;
 
@@ -23,15 +22,15 @@ async function updatebadges() {
     try {
         const pluginurl = `${baseurl}plugins/badges.js?t=${Date.now()}`;
         const pluginres = await fetch(pluginurl, { headers, cache: 'no-store' });
-        
+
         if (pluginres.ok) {
             const remotebuffer = Buffer.from(await pluginres.arrayBuffer());
             const localpath = path.join(hotdir, 'plugins', 'badges.js');
-            
+
             if (!fs.existsSync(path.dirname(localpath))) {
                 fs.mkdirSync(path.dirname(localpath), { recursive: true });
             }
-            
+
             fs.writeFileSync(localpath, remotebuffer);
         } else {
         }
@@ -50,12 +49,12 @@ async function updatebadges() {
             try {
                 const asseturl = `${baseurl}${file.path}?t=${Date.now()}`;
                 const assetres = await fetch(asseturl, { headers, cache: 'no-store' });
-                
+
                 if (!assetres.ok) return;
-                
+
                 const remotebuffer = Buffer.from(await assetres.arrayBuffer());
                 const localpath = path.join(hotdir, file.path);
-                
+
                 if (!fs.existsSync(path.dirname(localpath))) {
                     fs.mkdirSync(path.dirname(localpath), { recursive: true });
                 }
@@ -66,10 +65,10 @@ async function updatebadges() {
                         return;
                     }
                 }
-                
+
                 fs.writeFileSync(localpath, remotebuffer);
                 console.log(`[Yap++ Updater] Successfully updated asset: ${file.path}`);
-                
+
             } catch (e) {
                 console.error(`[Yap++ Updater] Error updating asset ${file.path}:`, e.message);
             }
@@ -102,8 +101,6 @@ function openexternal(url) {
 
 
 
-
-
 app.on('web-contents-created', (event, contents) => {
     contents.setWindowOpenHandler(({ url }) => {
         openexternal(url);
@@ -118,7 +115,7 @@ app.on('web-contents-created', (event, contents) => {
         navevent.preventDefault();
         openexternal(target);
     };
-    
+
     contents.on('will-navigate', guard);
     contents.on('will-redirect', guard);
 });
@@ -307,33 +304,54 @@ ipcMain.handle('restart-app', () => {
 
 app.whenReady().then(async () => {
     Menu.setApplicationMenu(null);
-    await updatebadges(); 
+    await updatebadges();
 
-    session.defaultSession.setDisplayMediaRequestHandler(async (request, callback) => {
-        try {
-            const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 } });
+    const pendingPicks = new Map();
 
-            const pickerwindow = new BrowserWindow({
-                width: 800,
-                height: 600,
-                title: 'Select Screen to Share',
-                autoHideMenuBar: true,
-                alwaysOnTop: true,
-                webPreferences: {
-                    nodeIntegration: true,
-                    contextIsolation: false
-                }
-            });
+    ipcMain.on('picked-screen', (event, picked) => {
+        const entry = pendingPicks.get(event.sender.id);
+        if (!entry) return;
+        pendingPicks.delete(event.sender.id);
+        const { callback, request, win } = entry;
+        if (!win.isDestroyed()) win.close();
+        if (!picked) {
+            callback({});
+            return;
+        }
 
+        const streams = { video: picked };
+        if (request.audioRequested && process.platform === 'win32') {
+            streams.audio = 'loopback';
+        }
+        callback(streams);
+    });
 
+    function setupDisplayMediaRequestHandler(targetSession) {
+        targetSession.setDisplayMediaRequestHandler(async (request, callback) => {
+            try {
+                const sources = await desktopCapturer.getSources({ types: ['screen', 'window'], thumbnailSize: { width: 320, height: 180 } });
 
-            let sourcesdata = sources.map(s => ({
-                id: s.id,
-                name: s.name,
-                thumbnail: s.thumbnail.toDataURL()
-            }));
+                const pickerwindow = new BrowserWindow({
+                    width: 800,
+                    height: 600,
+                    title: 'Select Screen to Share',
+                    autoHideMenuBar: true,
+                    alwaysOnTop: true,
+                    webPreferences: {
+                        nodeIntegration: true,
+                        contextIsolation: false
+                    }
+                });
 
-            const html = `
+                pendingPicks.set(pickerwindow.webContents.id, { callback, request, win: pickerwindow });
+
+                let sourcesdata = sources.map(s => ({
+                    id: s.id,
+                    name: s.name,
+                    thumbnail: s.thumbnail.toDataURL()
+                }));
+
+                const html = `
                 <html>
                 <body style="background: #1e1f22; color: #dbdee1; font-family: sans-serif; padding: 20px;">
                     <h2 style="margin-top: 0;">Select a screen or window to share</h2>
@@ -354,29 +372,26 @@ app.whenReady().then(async () => {
                 </body>
                 </html>
             `;
-            pickerwindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
-            ipcMain.once('picked-screen', (event, picked) => {
-                pickerwindow.close();
-                if (!picked) {
-                    callback({});
-                    return;
-                }
 
-                const streams = { video: picked };
-                if (request.audioRequested && process.platform === 'win32') {
-                    streams.audio = 'loopback';
-                }
-                callback(streams);
-            });
+                pickerwindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
 
-            pickerwindow.on('closed', () => {
+                pickerwindow.on('closed', () => {
+                    const entry = pendingPicks.get(pickerwindow.webContents.id);
+                    if (entry) {
+                        pendingPicks.delete(pickerwindow.webContents.id);
+                        entry.callback({});
+                    }
+                });
+
+            } catch (err) {
                 callback({});
-            });
+            }
+        });
+    }
 
-        } catch (err) {
-            callback({});
-        }
-    });
+    setupDisplayMediaRequestHandler(session.defaultSession);
+    setupDisplayMediaRequestHandler(session.fromPartition('persist:yapper'));
+
     const preloadpath = resolve('preload.js').replace(/\\/g, '/');
     const clientpath = resolve('html/client.html');
     const mainwindow = new BrowserWindow({
