@@ -343,7 +343,8 @@ app.whenReady().then(async () => {
                     }
                 });
 
-                pendingPicks.set(pickerwindow.webContents.id, { callback, request, win: pickerwindow });
+                const wcId = pickerwindow.webContents.id;
+                pendingPicks.set(wcId, { callback, request, win: pickerwindow });
 
                 let sourcesdata = sources.map(s => ({
                     id: s.id,
@@ -376,9 +377,9 @@ app.whenReady().then(async () => {
                 pickerwindow.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(html));
 
                 pickerwindow.on('closed', () => {
-                    const entry = pendingPicks.get(pickerwindow.webContents.id);
+                    const entry = pendingPicks.get(wcId);
                     if (entry) {
-                        pendingPicks.delete(pickerwindow.webContents.id);
+                        pendingPicks.delete(wcId);
                         entry.callback({});
                     }
                 });
