@@ -1,37 +1,30 @@
-window.PluginHost.register({
-  id: 'imnotadere',
-  name: 'IMNOTADERE',
-  description: `A-Adds H-HMNPH.. and s-stutters y-your w-words.. I-it's not like I wanted to make t-this plugin!! HMPH!`,
-  origFetch: null,
-  start() {
-    if (this.origFetch) return;
-    this.origFetch = window.fetch;
-    const origFetch = this.origFetch;
-    window.fetch = function(input, init) {
-      const url = typeof input === 'string' ? input : (input && input.url) || '';
-      const isInsert = url.indexOf('/rest/v1/messages') !== -1 && init && init.method === 'POST';
-      if (isInsert && init.body) {
-        try {
-          const body = JSON.parse(init.body);
-          if (typeof body.content === 'string') {
-            let words = body.content.split(' ');
-            for (let i = 0; i < words.length; i++) {
-              if (words[i].length > 0 && Math.random() < 0.5) {
-                words[i] = words[i][0] + '-' + words[i];
-              }
-            }
-            body.content = 'H-HMNPH.. ' + words.join(' ');
-            init.body = JSON.stringify(body);
+if (!window.__imnotadereInstalled) {
+  window.__imnotadereInstalled = true;
+  window.PluginHost.register({
+    id: 'imnotadere',
+    name: 'IMNOTADERE',
+    description: `A-Adds H-HMNPH.. and s-stutters y-your w-words.. I-it's not like I wanted to make t-this plugin!! HMPH!`,
+    start() {
+      window.PluginHost.addFetchTransformer('imnotadere', function(content) {
+        const words = content.trim().split(/\s+/).filter(Boolean);
+        if (!words.length) return content;
+        const parts = [];
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i];
+          const first = word.charAt(0);
+          if (first === ':' || first === ';' || first === '%' || /[0-9]/.test(first)) {
+            parts.push(word);
+          } else if (first.match(/[A-Za-z]/)) {
+            parts.push(first + '- ' + word);
+          } else {
+            parts.push(word);
           }
-        } catch (e) {}
-      }
-      return origFetch.call(this, input, init);
-    };
-  },
-  stop() {
-    if (this.origFetch) {
-      window.fetch = this.origFetch;
-      this.origFetch = null;
+        }
+        return parts.join(' ');
+      });
+    },
+    stop() {
+      window.PluginHost.removeFetchTransformer('imnotadere');
     }
-  }
-});
+  });
+}
