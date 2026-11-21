@@ -765,8 +765,32 @@
       const ours = [btn, settingsbtn, themesbtn, custombtn];
       if (!ours.some((b) => e.target === b || b.contains(e.target))) {
         currentMode = null;
+        [panelid, settingspanelid, themespanelid, custompanelid].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && el.parentElement === main) {
+            main.removeChild(el);
+          }
+        });
       }
     });
+
+    const panelSweep = new MutationObserver(() => {
+      if (currentMode === null) {
+        [panelid, settingspanelid, themespanelid, custompanelid].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && el.parentElement === main) {
+            main.removeChild(el);
+          }
+        });
+        return;
+      }
+      const ids = [panelid, settingspanelid, themespanelid, custompanelid];
+      const panel = ids.map(id => document.getElementById(id)).find(el => el && el.parentElement === main);
+      if (panel && main.children.length > 1) {
+        main.removeChild(panel);
+      }
+    });
+    panelSweep.observe(main, { childList: true });
   }
   setTimeout(() => {
     if (isdev() && window.PluginHost) loadsaved();
