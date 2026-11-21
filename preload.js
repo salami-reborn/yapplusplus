@@ -4,6 +4,9 @@ const preloadPathArg = process.argv.find(arg => arg.startsWith('--preload-path='
 const preloadPath = preloadPathArg ? preloadPathArg.split('=')[1] : '';
 
 contextBridge.exposeInMainWorld('electronAPI', {
+    yaplayStart: (session, port) => ipcRenderer.invoke('yaplay-start', session, port),
+    yaplayExchange: (session, snapshot, notices, call) => ipcRenderer.invoke('yaplay-exchange', session, snapshot, notices, call),
+    yaplayStop: (session) => ipcRenderer.invoke('yaplay-stop', session),
     getPlugins: () => ipcRenderer.invoke('get-plugins'),
     getAsset: (assetName) => ipcRenderer.invoke('get-asset', assetName),
     update: () => ipcRenderer.invoke('update'),
