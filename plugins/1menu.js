@@ -467,6 +467,35 @@
       cssinput.addEventListener('input', () => window.custombackground.setThemeCss(cssinput.value));
     }
 
+    const yaplaysection = document.createElement('div');
+    yaplaysection.className = 'yp-section';
+    yaplaysection.innerHTML = `
+      <h3>Yaplay</h3>
+      <p style="font-size:12px;color:#949ba4;">Enable Yaplay in the plugins menu to share call activity with the local overlay and allow its call controls.</p>
+      <p id="ypp-yaplay-status" role="status" style="font-size:13px;color:#e27ed3;"></p>
+      <label for="ypp-yaplay-port">Local port</label>
+      <div style="display:flex;gap:8px;margin:8px 0 12px;">
+        <input id="ypp-yaplay-port" type="number" min="1" max="65535" step="1" class="yp-input">
+        <button id="ypp-yaplay-apply" class="yp-btn">Apply</button>
+      </div>
+      <label><input id="ypp-yaplay-notifications" type="checkbox"> Forward notifications to Yaplay</label>
+      <p style="font-size:12px;color:#949ba4;">Notification titles and bodies are shared only when this option is enabled. Yaplay must be running on the same computer.</p>
+    `;
+    p.appendChild(yaplaysection);
+    const yaplaystatus = yaplaysection.querySelector('#ypp-yaplay-status');
+    const yaplayport = yaplaysection.querySelector('#ypp-yaplay-port');
+    const yaplaynotifications = yaplaysection.querySelector('#ypp-yaplay-notifications');
+    yaplaystatus.textContent = window.yaplay?.status || 'Yaplay is unavailable.';
+    yaplayport.value = String(window.yaplay?.getPort() || 8080);
+    yaplaynotifications.checked = window.yaplay?.getNotifications() || false;
+    yaplaysection.querySelector('#ypp-yaplay-apply').addEventListener('click', () => {
+      try {
+        window.yaplay.setPort(Number(yaplayport.value));
+        yaplaystatus.textContent = window.yaplay.status;
+      } catch (error) { yaplaystatus.textContent = error.message; }
+    });
+    yaplaynotifications.addEventListener('change', () => window.yaplay?.setNotifications(yaplaynotifications.checked));
+
     p.appendChild(builddevsection());
 
     return p;
