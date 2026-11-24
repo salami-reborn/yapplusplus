@@ -34,14 +34,10 @@ async function updatebadges() {
             fs.writeFileSync(localpath, remotebuffer);
         } else {
         }
-    } catch (e) {
-        console.error('badges. FUCK. this one: ', e.message);
-    }
+    } catch (e) {}
     try {
         const apires = await fetch('https://api.github.com/repos/salami-reborn/yapplusplus/git/trees/main?recursive=1', { headers });
-        if (!apires.ok) {
-            return;
-        }
+        if (!apires.ok) return;
         const tree = await apires.json();
         if (!tree || !tree.tree) return;
         const assetfiles = tree.tree.filter(f => f.type === 'blob' && f.path.startsWith('assets/'));
@@ -49,34 +45,22 @@ async function updatebadges() {
             try {
                 const asseturl = `${baseurl}${file.path}?t=${Date.now()}`;
                 const assetres = await fetch(asseturl, { headers, cache: 'no-store' });
-
                 if (!assetres.ok) return;
-
                 const remotebuffer = Buffer.from(await assetres.arrayBuffer());
                 const localpath = path.join(hotdir, file.path);
-
                 if (!fs.existsSync(path.dirname(localpath))) {
                     fs.mkdirSync(path.dirname(localpath), { recursive: true });
                 }
-
                 if (fs.existsSync(localpath)) {
                     const localbuffer = fs.readFileSync(localpath);
                     if (gitblobsha(localbuffer) === gitblobsha(remotebuffer)) {
                         return;
                     }
                 }
-
                 fs.writeFileSync(localpath, remotebuffer);
-                console.log(`[Yap++ Updater] Successfully updated asset: ${file.path}`);
-
-            } catch (e) {
-                console.error(`[Yap++ Updater] Error updating asset ${file.path}:`, e.message);
-            }
+            } catch (e) {}
         }));
-
-    } catch (e) {
-        console.error('[Yap++ Updater] Error fetching dynamic asset list:', e.message);
-    }
+    } catch (e) {}
 }
 
 function parseurl(url) {
@@ -414,12 +398,16 @@ function gitblobsha(buf) {
 
 // Contribution by @duckycore12
 async function gettree(repoowner, reponame, branch, headers) {
-    const manifesturl = `https://raw.githubusercontent.com/${repoowner}/${reponame}/${branch}/manifest.json?t=${Date.now()}`;
-    const res = await fetch(manifesturl, { headers });
-    if (!res.ok) throw new Error(`Couldn't fetch manifest.json (${res.status})`);
-    const manifest = await res.json();
-    if (!manifest || typeof manifest !== 'object') throw new Error('manifest.json is invalid');
-    return Object.entries(manifest).map(([p, sha]) => ({ type: 'blob', path: p, sha }));
+    try {
+        const manifesturl = `https://raw.githubusercontent.com/${repoowner}/${reponame}/${branch}/manifest.json?t=${Date.now()}`;
+        const res = await fetch(manifesturl, { headers });
+        if (!res.ok) return [];
+        const manifest = await res.json();
+        if (!manifest || typeof manifest !== 'object') return [];
+        return Object.entries(manifest).map(([p, sha]) => ({ type: 'blob', path: p, sha }));
+    } catch (e) {
+        return [];
+    }
 }
 
 async function update() { // contribution by @duckycore12
@@ -430,6 +418,7 @@ async function update() { // contribution by @duckycore12
 
     try {
         const tree = await gettree(repoowner, reponame, branch, headers);
+        if (!tree || tree.length === 0) return { success: true, count: 0 };
 
         const safepaths = /^(app\.js|main\.js|preload\.js|html\/client\.html|assets\/.*|plugins\/.*|themes\/.*)$/;
         const files = tree.filter(f => f.type === 'blob' && safepaths.test(f.path));
