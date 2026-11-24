@@ -1,7 +1,7 @@
 const { app } = require('electron');
 const fs = require('fs');
 const path = require('path');
-//
+// github actions plsss work
 const hotDir = path.join(app.getPath('userData'), 'yapplus-hot');
 const hotMain = path.join(hotDir, 'main.js');
 const bundledMain = path.join(__dirname, 'main.js');
