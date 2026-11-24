@@ -5,39 +5,69 @@
         if (!u) return;
         if (!src) src = '';
         const id = u.toLowerCase(), B = window.__ftx = window.__ftx || {
-            m: {}, 
+            m: {},
             p() {
                 const a = typeof staffbadge < 'u' && staffbadge.msgAuthor;
-                if (!a) return;
-                document.querySelectorAll('.msg[data-message-id]').forEach(e => {
-                    const h = e.querySelector('.msg-head .msg-author')?.parentNode;
-                    if (!h) return;
-                    const mid = e.dataset.messageId;
-                    for (const [k, v] of Object.entries(B.m)) {
-                        const badges = Array.isArray(v) ? v : [v];
-                        const me = a.get(mid) === k;
-                        badges.forEach(function(badge, idx) {
-                            const c = 'yp-ftx-' + k.slice(0, 8) + (idx > 0 ? '-' + idx : '');
-                            const x = h.querySelector(':scope>.' + c);
-                            if (me && badge.s && !x) {
-                                const i = new Image();
-                                i.className = c;
-                                i.src = badge.s;
-                                i.title = badge.t;
-                                i.alt = 'Badge';
-                                i.draggable = !1;
-                                const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
-                                h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
-                            } else if (!me && x) x.remove();
-                            else if (me && badge.s && (x.src !== badge.s || x.title !== badge.t)) {
-                                x.src = badge.s;
-                                x.title = badge.t;
-                            }
-                        });
-                    }
-                });
+                if (a) {
+                    document.querySelectorAll('.msg[data-message-id]').forEach(e => {
+                        const h = e.querySelector('.msg-head .msg-author')?.parentNode;
+                        if (!h) return;
+                        const mid = e.dataset.messageId;
+                        for (const [k, v] of Object.entries(B.m)) {
+                            const badges = Array.isArray(v) ? v : [v];
+                            const me = a.get(mid) === k;
+                            badges.forEach(function(badge, idx) {
+                                const c = 'yp-ftx-' + k.slice(0, 8) + (idx > 0 ? '-' + idx : '');
+                                const x = h.querySelector(':scope>.' + c);
+                                if (me && badge.s && !x) {
+                                    const i = new Image();
+                                    i.className = c;
+                                    i.src = badge.s;
+                                    i.title = badge.t;
+                                    i.alt = 'Badge';
+                                    i.draggable = !1;
+                                    const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
+                                    h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
+                                } else if (!me && x) x.remove();
+                                else if (me && badge.s && (x.src !== badge.s || x.title !== badge.t)) {
+                                    x.src = badge.s;
+                                    x.title = badge.t;
+                                }
+                            });
+                        }
+                    });
+                }
+                setTimeout(function() {
+                    const row = document.querySelector('.badge-row');
+                    if (!row) return;
+                    row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
+                    const av = document.querySelector('img[src*="/avatars/"]');
+                    if (!av) return;
+                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
+                    if (!m2) return;
+                    const uid = m2[1].toLowerCase();
+                    const entry = B.m[uid];
+                    if (!entry) return;
+                    const badgeList = Array.isArray(entry) ? entry : [entry];
+                    badgeList.forEach(function(badge, idx) {
+                        if (!badge.s) return;
+                        const c = 'yp-ftx-' + uid.slice(0, 8) + (idx > 0 ? '-' + idx : '');
+                        const i = new Image();
+                        i.className = 'ubadge ftx row ' + c;
+                        i.src = badge.s;
+                        i.title = badge.t || '';
+                        i.alt = 'Badge';
+                        i.draggable = !1;
+                        i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                        row.appendChild(i);
+                    });
+                }, 200);
             }
         };
+        try {
+            const stored = localStorage.getItem('yap_ftx_badges');
+            if (stored) B.m = JSON.parse(stored);
+        } catch (e) {}
         
         if (!B.m[id]) B.m[id] = [];
         if (src) B.m[id].push({ s: src, t: hover || '' });
