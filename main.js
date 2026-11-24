@@ -174,6 +174,7 @@ function getthemecode() {
 ipcMain.handle('get-plugins', () => getplugincode());
 
 const yaplaysessions = new Map();
+const yaplayActions = ['set_mute', 'set_deafen', 'leave_call'];
 
 function yaplaysource(event) {
     const frame = event.senderFrame;
@@ -242,6 +243,7 @@ function yaplayconnect(connection) {
     if (connection.socket || Date.now() < connection.retry) return;
     const socket = new WebSocket(`ws://127.0.0.1:${connection.port}`);
     connection.socket = socket;
+    let accepted = null;
     const failed = () => {
         if (connection.socket !== socket) return;
         yaplayclose(connection);
@@ -251,7 +253,18 @@ function yaplayconnect(connection) {
     socket.addEventListener('open', () => {
         if (connection.socket !== socket) return;
         clearTimeout(connection.timeout);
-        socket.send('{"type":"hello","version":1,"controls":true}');
+        try {
+            socket.send(JSON.stringify({ type: 'hello', version: 2, name: 'Yap++', client_version: app.getVersion(), actions: yaplayActions }));
+        } catch { failed(); return; }
+        // A v1 overlay never acknowledges the hello. It supports all three controls.
+        connection.timeout = setTimeout(() => {
+            if (connection.socket !== socket || socket.readyState !== WebSocket.OPEN || accepted !== null) return;
+            try {
+                socket.send('{"type":"hello","version":1,"controls":true}');
+                accepted = new Set(yaplayActions);
+                connection.last = '';
+            } catch { failed(); }
+        }, 1500);
     });
     socket.addEventListener('error', failed);
     socket.addEventListener('close', failed);
@@ -260,6 +273,13 @@ function yaplayconnect(connection) {
         if (typeof event.data !== 'string' || Buffer.byteLength(event.data) > 4096) { failed(); return; }
         try {
             const action = JSON.parse(event.data);
+            if (action?.type === 'hello_ack' && accepted === null && action.version === 2
+                && Array.isArray(action.actions) && action.actions.every(name => typeof name === 'string')) {
+                clearTimeout(connection.timeout);
+                accepted = new Set(yaplayActions.filter(name => action.actions.includes(name)));
+                return;
+            }
+            if (!accepted?.has(action?.type)) return;
             const valid = (yaplayfields(action, ['type', 'muted']) && action.type === 'set_mute' && typeof action.muted === 'boolean')
                 || (yaplayfields(action, ['type', 'deafened']) && action.type === 'set_deafen' && typeof action.deafened === 'boolean')
                 || (yaplayfields(action, ['type']) && action.type === 'leave_call');
