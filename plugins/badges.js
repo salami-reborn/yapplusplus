@@ -2,76 +2,39 @@
     const A = window.YapPlusAssets || {};
     
     function fanumtaxxbadge(u, hover, src) {
-        if (!u) return;
-        if (!src) src = '';
+        if (!u || !src) return;
         const id = u.toLowerCase(), B = window.__ftx = window.__ftx || {
-            m: {},
+            m: {}, 
             p() {
                 const a = typeof staffbadge < 'u' && staffbadge.msgAuthor;
-                if (a) {
-                    document.querySelectorAll('.msg[data-message-id]').forEach(e => {
-                        const h = e.querySelector('.msg-head .msg-author')?.parentNode;
-                        if (!h) return;
-                        const mid = e.dataset.messageId;
-                        for (const [k, v] of Object.entries(B.m)) {
-                            const badges = Array.isArray(v) ? v : [v];
-                            const me = a.get(mid) === k;
-                            badges.forEach(function(badge, idx) {
-                                const c = 'yp-ftx-' + k.slice(0, 8) + (idx > 0 ? '-' + idx : '');
-                                const x = h.querySelector(':scope>.' + c);
-                                if (me && badge.s && !x) {
-                                    const i = new Image();
-                                    i.className = c;
-                                    i.src = badge.s;
-                                    i.title = badge.t;
-                                    i.alt = 'Badge';
-                                    i.draggable = !1;
-                                    const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
-                                    h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
-                                } else if (!me && x) x.remove();
-                                else if (me && badge.s && (x.src !== badge.s || x.title !== badge.t)) {
-                                    x.src = badge.s;
-                                    x.title = badge.t;
-                                }
-                            });
+                if (!a) return;
+                document.querySelectorAll('.msg[data-message-id]').forEach(e => {
+                    const h = e.querySelector('.msg-head .msg-author')?.parentNode;
+                    if (!h) return;
+                    const mid = e.dataset.messageId;
+                    for (const [k, v] of Object.entries(B.m)) {
+                        const c = 'yp-ftx-' + k.slice(0, 8), x = h.querySelector(':scope>.' + c), me = a.get(mid) === k;
+                        if (me && !x) {
+                            const i = new Image();
+                            i.className = c;
+                            i.src = v.s;
+                            i.title = v.t;
+                            i.alt = 'Badge';
+                            i.draggable = !1;
+                            const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
+                            h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
+                        } else if (!me && x) x.remove();
+                        else if (me && (x.src !== v.s || x.title !== v.t)) {
+                            x.src = v.s;
+                            x.title = v.t;
                         }
-                    });
-                }
-                setTimeout(function() {
-                    const row = document.querySelector('.badge-row');
-                    if (!row) return;
-                    row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
-                    const av = document.querySelector('img[src*="/avatars/"]');
-                    if (!av) return;
-                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
-                    if (!m2) return;
-                    const uid = m2[1].toLowerCase();
-                    const entry = B.m[uid];
-                    if (!entry) return;
-                    const badgeList = Array.isArray(entry) ? entry : [entry];
-                    badgeList.forEach(function(badge, idx) {
-                        if (!badge.s) return;
-                        const c = 'yp-ftx-' + uid.slice(0, 8) + (idx > 0 ? '-' + idx : '');
-                        const i = new Image();
-                        i.className = 'ubadge ftx row ' + c;
-                        i.src = badge.s;
-                        i.title = badge.t || '';
-                        i.alt = 'Badge';
-                        i.draggable = !1;
-                        i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
-                        row.appendChild(i);
-                    });
-                }, 200);
+                    }
+                });
             }
         };
-        try {
-            const stored = localStorage.getItem('yap_ftx_badges');
-            if (stored) B.m = JSON.parse(stored);
-        } catch (e) {}
         
-        if (!B.m[id]) B.m[id] = [];
-        if (src) B.m[id].push({ s: src, t: hover || '' });
-        try { localStorage.setItem('yap_ftx_badges', JSON.stringify(B.m)); } catch (e) {}
+        if (B.m[id]) return B.m[id] = { s: src, t: hover || '' }, B.p();
+        B.m[id] = { s: src, t: hover || '' };
         
         if (!document.getElementById('yp-ftx-css')) {
             const s = document.createElement('style');
@@ -88,9 +51,9 @@
         id: 'staffbadge',
         name: 'Staff Badge',
         description: 'A badge for yap++ contributors/staff/helpers/eventwinners.',
-        BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '77ae11af', '1720334f', 'c5ccf056-9c36-4367-9d27-69c92424c7fe', 'c5ccf056', 'da302abc', 'baebe68c-8944-4738-aa41-40d67a018c62', 'c00c8a06-ec79-42ca-9b79-bfa3139a0d25', 'e96e12b4-2bac-4d4e-8914-cdb7404abf9d', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', 'f1e42d68-12a0-43b0-956d-ed5b9f8fb9f2', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', '9c2208e6-f8b4-44db-ac91-89a012ffb0a8', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6', '6dcac643-07bc-4908-972e-30e227554333'],
+        BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe,', '77ae11af', '1720334f', 'c5ccf056-9c36-4367-9d27-69c92424c7fe', 'c5ccf056', 'da302abc', 'baebe68c-8944-4738-aa41-40d67a018c62', 'c00c8a06-ec79-42ca-9b79-bfa3139a0d25', 'e96e12b4-2bac-4d4e-8914-cdb7404abf9d', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', 'f1e42d68-12a0-43b0-956d-ed5b9f8fb9f2', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', '9c2208e6-f8b4-44db-ac91-89a012ffb0a8', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6'],
         BADGE_SRC: A.staff || '',
-        HELPER_BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '1b2d9bda-4afc-466c-b661-3399b0ee7f7b', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '48eb0fcb-21ca-4171-899c-ca1ca29d9ee4', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', 'da302abc-7fa0-4f7a-9f3f-536d6eadfc71', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6', '6dcac643-07bc-4908-972e-30e227554333'],
+        HELPER_BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '1b2d9bda-4afc-466c-b661-3399b0ee7f7b', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '48eb0fcb-21ca-4171-899c-ca1ca29d9ee4', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', 'da302abc-7fa0-4f7a-9f3f-536d6eadfc71', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6'],
         HELPER_BADGE_SRC: A.helper || '',
         msgAuthor: new Map(),
         unresolvable: new Set(),
@@ -168,8 +131,6 @@
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('13aa6b8b-f756-4dcb-b791-f6086ad1806e', `My alt. If this is online then I'm either testing a plugin/idk`, A.yppIcon || '');
             fanumtaxxbadge('1e15f614-cb69-44a8-8684-b4cd0c0f5834', 'Yapin.js Developer', A.yapjsbadge || '');
-            fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', 'Femboy', A.astolfodoodle || '');
-            fanumtaxxbadge('6dcac643-07bc-4908-972e-30e227554333', 'Nyu 🖤', A.gothheart || '')
 
             if (!this.origFetch) this.origFetch = window.fetch;
             const origFetch = this.origFetch;
