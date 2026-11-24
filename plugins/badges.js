@@ -1,166 +1,96 @@
 (function() {
     const A = window.YapPlusAssets || {};
-
-    const B = window.__ftx = window.__ftx || {
-        m: {},
-        _loadedStorage: false,
-        p() {
-            const a = typeof staffbadge < 'u' && staffbadge.msgAuthor;
-            if (a) {
-                document.querySelectorAll('.msg[data-message-id]').forEach(e => {
-                    const h = e.querySelector('.msg-head .msg-author')?.parentNode;
-                    if (!h) return;
-                    const mid = e.dataset.messageId;
-                    const authorId = a.get(mid);
-                    
-                    // Remove existing FTX badges in this message header before re-painting
-                    h.querySelectorAll(':scope>[class*="yp-ftx-"]').forEach(el => el.remove());
-
-                    if (!authorId || !B.m[authorId]) return;
-
-                    const rawBadges = B.m[authorId];
-                    const badges = Array.isArray(rawBadges) ? rawBadges : [rawBadges];
-
-                    const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
-                    let anchor = o.length ? o[o.length - 1] : h.querySelector('.msg-author');
-
-                    badges.forEach((badge, idx) => {
-                        if (!badge || !badge.s) return;
-                        const c = 'yp-ftx-' + authorId.slice(0, 8) + (badges.length > 1 && idx > 0 ? '-' + idx : '');
+    
+    function fanumtaxxbadge(u, hover, src) {
+        if (!u) return;
+        if (!src) src = '';
+        const id = u.toLowerCase(), B = window.__ftx = window.__ftx || {
+            m: {},
+            p() {
+                const a = typeof staffbadge < 'u' && staffbadge.msgAuthor;
+                if (a) {
+                    document.querySelectorAll('.msg[data-message-id]').forEach(e => {
+                        const h = e.querySelector('.msg-head .msg-author')?.parentNode;
+                        if (!h) return;
+                        const mid = e.dataset.messageId;
+                        for (const [k, v] of Object.entries(B.m)) {
+                            const badges = Array.isArray(v) ? v : [v];
+                            const me = a.get(mid) === k;
+                            badges.forEach(function(badge, idx) {
+                                const c = 'yp-ftx-' + k.slice(0, 8) + (idx > 0 ? '-' + idx : '');
+                                const x = h.querySelector(':scope>.' + c);
+                                if (me && badge.s && !x) {
+                                    const i = new Image();
+                                    i.className = c;
+                                    i.src = badge.s;
+                                    i.title = badge.t;
+                                    i.alt = 'Badge';
+                                    i.draggable = !1;
+                                    const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
+                                    h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
+                                } else if (!me && x) x.remove();
+                                else if (me && badge.s && (x.src !== badge.s || x.title !== badge.t)) {
+                                    x.src = badge.s;
+                                    x.title = badge.t;
+                                }
+                            });
+                        }
+                    });
+                }
+                setTimeout(function() {
+                    const row = document.querySelector('.badge-row');
+                    if (!row) return;
+                    row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
+                    const av = document.querySelector('img[src*="/avatars/"]');
+                    if (!av) return;
+                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
+                    if (!m2) return;
+                    const uid = m2[1].toLowerCase();
+                    const entry = B.m[uid];
+                    if (!entry) return;
+                    const badgeList = Array.isArray(entry) ? entry : [entry];
+                    badgeList.forEach(function(badge, idx) {
+                        if (!badge.s) return;
+                        const c = 'yp-ftx-' + uid.slice(0, 8) + (idx > 0 ? '-' + idx : '');
                         const i = new Image();
-                        i.className = c;
+                        i.className = 'ubadge ftx row ' + c;
                         i.src = badge.s;
                         i.title = badge.t || '';
                         i.alt = 'Badge';
-                        i.draggable = false;
-                        
-                        h.insertBefore(i, anchor.nextSibling);
-                        anchor = i; // Keep insertion order left-to-right
+                        i.draggable = !1;
+                        i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                        row.appendChild(i);
                     });
-                });
+                }, 200);
             }
-
-            // User Profile Modal / Badge Row
-            const row = document.querySelector('.badge-row');
-            if (!row) return;
-            const av = document.querySelector('img[src*="/avatars/"]');
-            if (!av) return;
-            const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
-            if (!m2) return;
-            const uid = m2[1].toLowerCase();
-            const entry = B.m[uid];
-            if (!entry) return;
-
-            const badgeList = Array.isArray(entry) ? entry : [entry];
-            row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
-            badgeList.forEach((badge, idx) => {
-                if (!badge || !badge.s) return;
-                const c = 'yp-ftx-' + uid.slice(0, 8) + (badgeList.length > 1 && idx > 0 ? '-' + idx : '');
-                const i = new Image();
-                i.className = 'ubadge ftx row ' + c;
-                i.src = badge.s;
-                i.title = badge.t || '';
-                i.alt = 'Badge';
-                i.draggable = false;
-                i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
-                row.appendChild(i);
-            });
-        }
-    };
-
-    function fanumtaxxbadge(u, hover, src) {
-        if (!u || !src) return;
-        const id = u.toLowerCase();
-
-        // Load existing stored badges once on script boot
-        if (!B._loadedStorage) {
-            try {
-                const stored = localStorage.getItem('yap_ftx_badges');
-                if (stored) B.m = JSON.parse(stored);
-            } catch (e) {}
-            B._loadedStorage = true;
-        }
-
-        if (!Array.isArray(B.m[id])) B.m[id] = [];
-
-        // Deduplicate: If badge with same hover title OR same source already exists, update it instead of pushing a duplicate
-        const existing = B.m[id].find(b => (hover && b.t === hover) || (b.s === src));
-        if (existing) {
-            existing.s = src;
-            existing.t = hover || '';
-        } else {
-            B.m[id].push({ s: src, t: hover || '' });
-        }
-
-        // Clean up any historical duplicates already accumulated in localStorage
-        const seen = new Set();
-        B.m[id] = B.m[id].filter(b => {
-            if (!b || !b.s) return false;
-            const key = (b.t || '').trim() || b.s;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-        });
-
-        try { 
-            localStorage.setItem('yap_ftx_badges', JSON.stringify(B.m)); 
+        };
+        try {
+            const stored = localStorage.getItem('yap_ftx_badges');
+            if (stored) B.m = JSON.parse(stored);
         } catch (e) {}
-
+        
+        if (!B.m[id]) B.m[id] = [];
+        if (src) B.m[id].push({ s: src, t: hover || '' });
+        try { localStorage.setItem('yap_ftx_badges', JSON.stringify(B.m)); } catch (e) {}
+        
         if (!document.getElementById('yp-ftx-css')) {
             const s = document.createElement('style');
             s.id = 'yp-ftx-css';
-            s.textContent = '[class*="yp-ftx-"]{height:16px;width:16px;margin-left:4px;vertical-align:-3px;align-self:center;object-fit:contain;user-select:none}';
-            (document.head || document.documentElement).appendChild(s);
+            s.textContent = '[class^=yp-ftx-]{height:16px;width:16px;margin-left:4px;vertical-align:-3px;align-self:center;object-fit:contain;user-select:none}';
+            document.head.appendChild(s);
         }
-
         B.p();
-        if (!B.t) B.t = setInterval(B.p, 1500);
-        if (!B.o) (B.o = new MutationObserver(B.p)).observe(document.documentElement, { childList: true, subtree: true });
+        if (!B.t) B.t = setInterval(B.p, 1e3);
+        if (!B.o) (B.o = new MutationObserver(B.p)).observe(document.documentElement, { childList: !0, subtree: !0 });
     }
 
     const staffbadge = {
         id: 'staffbadge',
         name: 'Staff Badge',
         description: 'A badge for yap++ contributors/staff/helpers/eventwinners.',
-        BADGED: [
-            'c5ccf056-9c36-4367-9d27-69c92424c7fe',
-            '77ae11af',
-            '1720334f',
-            'c5ccf056',
-            'da302abc',
-            'baebe68c-8944-4738-aa41-40d67a018c62',
-            'c00c8a06-ec79-42ca-9b79-bfa3139a0d25',
-            'e96e12b4-2bac-4d4e-8914-cdb7404abf9d',
-            '13aa6b8b-f756-4dcb-b791-f6086ad1806e',
-            'f1e42d68-12a0-43b0-956d-ed5b9f8fb9f2',
-            '3d32bc29-8de7-4085-a8c9-22b3acf285f1',
-            '2401d1d0-467c-40a8-888d-9f7526414690',
-            'e2647b1f-e7fc-4c68-a630-00cfa1439d49',
-            '9c2208e6-f8b4-44db-ac91-89a012ffb0a8',
-            '6d6d3554-f789-4f81-8aea-baed4af5dc89',
-            '165de22a-53d6-43ed-8cb2-502f915f98e9',
-            '4426cda0-4337-41a6-9fe9-ef95933b3b2c',
-            '398f5f6b-fb76-4975-b268-e2c67b7ac9ab',
-            '47e02943-a5ed-437d-8edb-241c7d85f2c6',
-            '6dcac643-07bc-4908-972e-30e227554333'
-        ],
+        BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '77ae11af', '1720334f', 'c5ccf056-9c36-4367-9d27-69c92424c7fe', 'c5ccf056', 'da302abc', 'baebe68c-8944-4738-aa41-40d67a018c62', 'c00c8a06-ec79-42ca-9b79-bfa3139a0d25', 'e96e12b4-2bac-4d4e-8914-cdb7404abf9d', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', 'f1e42d68-12a0-43b0-956d-ed5b9f8fb9f2', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', '9c2208e6-f8b4-44db-ac91-89a012ffb0a8', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6', '6dcac643-07bc-4908-972e-30e227554333'],
         BADGE_SRC: A.staff || '',
-        HELPER_BADGED: [
-            'c5ccf056-9c36-4367-9d27-69c92424c7fe',
-            '1b2d9bda-4afc-466c-b661-3399b0ee7f7b',
-            '3d32bc29-8de7-4085-a8c9-22b3acf285f1',
-            '48eb0fcb-21ca-4171-899c-ca1ca29d9ee4',
-            '2401d1d0-467c-40a8-888d-9f7526414690',
-            'e2647b1f-e7fc-4c68-a630-00cfa1439d49',
-            'da302abc-7fa0-4f7a-9f3f-536d6eadfc71',
-            '6d6d3554-f789-4f81-8aea-baed4af5dc89',
-            '13aa6b8b-f756-4dcb-b791-f6086ad1806e',
-            '165de22a-53d6-43ed-8cb2-502f915f98e9',
-            '4426cda0-4337-41a6-9fe9-ef95933b3b2c',
-            '398f5f6b-fb76-4975-b268-e2c67b7ac9ab',
-            '47e02943-a5ed-437d-8edb-241c7d85f2c6',
-            '6dcac643-07bc-4908-972e-30e227554333'
-        ],
+        HELPER_BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '1b2d9bda-4afc-466c-b661-3399b0ee7f7b', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '48eb0fcb-21ca-4171-899c-ca1ca29d9ee4', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', 'da302abc-7fa0-4f7a-9f3f-536d6eadfc71', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6', '6dcac643-07bc-4908-972e-30e227554333'],
         HELPER_BADGE_SRC: A.helper || '',
         msgAuthor: new Map(),
         unresolvable: new Set(),
@@ -176,7 +106,7 @@
         isBadged(authorId) {
             if (!authorId) return false;
             const a = String(authorId).toLowerCase();
-            return this.BADGED.some(p => a.startsWith(p.toLowerCase()));
+            return this.BADGED.some(p => a.startsWith(p));
         },
 
         isHelper(authorId) {
@@ -225,11 +155,8 @@
         },
 
         start() {
-            if (this._started) return;
-            this._started = true;
             const self = this;
 
-            // Register custom badges
             fanumtaxxbadge('3d32bc29-8de7-4085-a8c9-22b3acf285f1', `VIM, The most goated text editor oat`, A.vim || '');
             fanumtaxxbadge('9c2208e6-f8b4-44db-ac91-89a012ffb0a8', `Potato Goddess`, A.potato || '');
             fanumtaxxbadge('f2c4c4c8-d455-4f75-864e-dcbfe04ec71d', `tuffestbadgever`, A.whitebox || '');
@@ -238,10 +165,11 @@
             fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', `1/2 Owners/Operators of yap!!`, A.yppIcon || '');
             fanumtaxxbadge('da302abc-7fa0-4f7a-9f3f-536d6eadfc71', `1/2 Owners/Operators of yap!!`, A.yppIcon || '');
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
+            fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('13aa6b8b-f756-4dcb-b791-f6086ad1806e', `My alt. If this is online then I'm either testing a plugin/idk`, A.yppIcon || '');
             fanumtaxxbadge('1e15f614-cb69-44a8-8684-b4cd0c0f5834', 'Yapin.js Developer', A.yapjsbadge || '');
             fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', 'Femboy', A.astolfodoodle || '');
-            fanumtaxxbadge('6dcac643-07bc-4908-972e-30e227554333', 'Nyu 🖤', A.gothheart || '');
+            fanumtaxxbadge('6dcac643-07bc-4908-972e-30e227554333', 'Nyu 🖤', A.gothheart || '')
 
             if (!this.origFetch) this.origFetch = window.fetch;
             const origFetch = this.origFetch;
@@ -311,7 +239,7 @@
             this.schedulePaint();
             this.backfill();
             this.healInterval = setInterval(() => self.heal(), 4000);
-            console.log('[Libyapcore] [I]> staffbadge initialized');
+            console.log('[Libyapcore] [I]> staddfabdge rizzed');
         },
 
         async backfill() {
@@ -322,8 +250,7 @@
                 if (!token) return;
                 const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZmt1cXpkZHd2dGRvanpnbWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzk0ODgsImV4cCI6MjEwNzIxNTQ4OH0.kMZcUf8DgMrYFNGtMPW9SGja2m1cRdMq5WJv5XBNgCU';
                 const res = await (this.origFetch || window.fetch)(
-                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?channel_id=eq.${loc}&select=id,author_id&order=created_at.desc&limit=200`, 
-                    { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
+                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?channel_id=eq.${loc}&select=id,author_id&order=created_at.desc&limit=200`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
                 );
                 if (res.ok) {
                     const rows = await res.json();
@@ -348,16 +275,13 @@
                 const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZmt1cXpkZHd2dGRvanpnbWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzk0ODgsImV4cCI6MjEwNzIxNTQ4OH0.kMZcUf8DgMrYFNGtMPW9SGja2m1cRdMq5WJv5XBNgCU';
                 const batch = missing.slice(0, 150);
                 const res = await (this.origFetch || window.fetch)(
-                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?id=in.(${batch.join(',')})&select=id,author_id`, 
-                    { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
+                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?id=in.(${batch.join(',')})&select=id,author_id`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
                 );
                 if (res.ok) {
                     const rows = await res.json();
                     const found = new Set();
-                    if (Array.isArray(rows)) rows.forEach(r => { 
-                        this.remember(r.id, r.author_id);
-                        found.add(r.id); 
-                    });
+                    if (Array.isArray(rows)) rows.forEach(r => { this.remember(r.id, r.author_id);
+                        found.add(r.id); });
                     batch.forEach(id => { if (!found.has(id)) this.unresolvable.add(id); });
                     this.schedulePaint();
                 }
@@ -366,10 +290,8 @@
         },
 
         stop() {
-            if (this.origFetch) { 
-                window.fetch = this.origFetch;
-                this.origFetch = null; 
-            }
+            if (this.origFetch) { window.fetch = this.origFetch;
+                this.origFetch = null; }
             if (this.origAddEventListener) {
                 WebSocket.prototype.addEventListener = this.origAddEventListener;
                 this.origAddEventListener = null;
@@ -378,10 +300,8 @@
                 Object.defineProperty(WebSocket.prototype, 'onmessage', this.origOnMessage);
                 this.origOnMessage = null;
             }
-            if (this.observer) { 
-                this.observer.disconnect();
-                this.observer = null; 
-            }
+            if (this.observer) { this.observer.disconnect();
+                this.observer = null; }
             clearInterval(this.healInterval);
             clearTimeout(this.paintTimer);
             document.querySelectorAll('.yp-staff-badge, .yp-helper-badge').forEach(el => el.remove());
@@ -390,12 +310,7 @@
 
         schedulePaint() {
             clearTimeout(this.paintTimer);
-            this.paintTimer = setTimeout(() => {
-                this.paint();
-                if (window.__ftx && typeof window.__ftx.p === 'function') {
-                    window.__ftx.p();
-                }
-            }, 80);
+            this.paintTimer = setTimeout(() => this.paint(), 80);
         },
 
         injectCss() {
@@ -403,20 +318,20 @@
             const css = document.createElement('style');
             css.id = 'yp-staff-badge-css';
             css.textContent = `
-              .yp-staff-badge, .yp-helper-badge {
-                height: 16px;
-                width: 16px;
-                border-radius: 50%;
-                margin-left: 6px;
-                vertical-align: -3px;
-                align-self: center;
-                object-fit: cover;
-                pointer-events: none;
-                user-select: none;
-              }
-              .yp-staff-badge { box-shadow: 0 0 5px rgba(255, 0, 255, 0.99); }
-              .yp-helper-badge { box-shadow: 0 0 5px rgba(215, 18, 255, 0.93); }
-            `;
+          .yp-staff-badge, .yp-helper-badge {
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            margin-left: 6px;
+            vertical-align: -3px;
+            align-self: center;
+            object-fit: cover;
+            pointer-events: none;
+            user-select: none;
+          }
+          .yp-staff-badge { box-shadow: 0 0 5px rgba(255, 0, 255, 0.99); }
+          .yp-helper-badge { box-shadow: 0 0 5px rgba(215, 18, 255, 0.93); }
+        `;
             (document.head || document.documentElement).appendChild(css);
         },
 
@@ -474,4 +389,5 @@
     } catch (e) {
         console.error("[Libyapcore] [E]> [StaffBadge]>", e);
     }
+
 })();
