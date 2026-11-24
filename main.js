@@ -135,19 +135,21 @@ function getplugincode() {
         hotdir ? path.join(hotdir, 'plugins') : null,
         path.join(appdir, 'plugins')
     ].filter(Boolean);
-    const seen = new Set();
+    const files = new Map();
     let combinedcode = '';
     for (const dir of dirs) {
         if (!fs.existsSync(dir)) continue;
         fs.readdirSync(dir).forEach(file => {
-            if (file.endsWith('.js') && !seen.has(file)) {
-                seen.add(file);
-                try {
-                    combinedcode += `\n// [Libyapcore] [P.L]> ${file} >.<\n`;
-                    combinedcode += fs.readFileSync(path.join(dir, file), 'utf-8') + '\n';
-                } catch (e) {}
-            }
+            if (file.endsWith('.js') && !files.has(file)) files.set(file, path.join(dir, file));
         });
+    }
+    const names = [...files.keys()].sort((left, right) => {
+        if (left === '0core.js') return -1;
+        if (right === '0core.js') return 1;
+        return left.localeCompare(right);
+    });
+    for (const name of names) {
+        try { combinedcode += fs.readFileSync(files.get(name), 'utf-8') + '\n'; } catch (e) {}
     }
     return combinedcode;
 }
@@ -170,6 +172,194 @@ function getthemecode() {
 }
 
 ipcMain.handle('get-plugins', () => getplugincode());
+
+const yaplaysessions = new Map();
+const yaplayActions = ['set_mute', 'set_deafen', 'leave_call'];
+
+function yaplaysource(event) {
+    const frame = event.senderFrame;
+    const url = frame && parseurl(frame.url);
+    if (event.sender.getType() !== 'webview' || frame !== event.sender.mainFrame || !url
+        || !['https://yapper.website', 'https://www.yapper.website', 'https://yapin.gg', 'https://www.yapin.gg'].includes(url.origin)) {
+        throw new Error('Yaplay requires the Yapin window.');
+    }
+    return event.sender.id;
+}
+
+function yaplayfields(value, fields) {
+    return value && typeof value === 'object' && !Array.isArray(value)
+        && Object.keys(value).every(key => fields.includes(key));
+}
+
+function yaplayvalidate(snapshot, notices) {
+    if (!yaplayfields(snapshot, ['in_call', 'members', 'muted', 'deafened'])
+        || typeof snapshot.in_call !== 'boolean' || typeof snapshot.muted !== 'boolean'
+        || typeof snapshot.deafened !== 'boolean' || !Array.isArray(snapshot.members)
+        || snapshot.members.length > 4096
+        || (!snapshot.in_call && (snapshot.members.length || snapshot.muted || snapshot.deafened))) {
+        throw new Error('Invalid Yaplay call state.');
+    }
+    const ids = new Set();
+    for (const member of snapshot.members) {
+        if (!yaplayfields(member, ['id', 'name', 'avatar_url', 'color', 'speaking', 'muted', 'is_self'])
+            || typeof member.id !== 'string' || !member.id.length || Buffer.byteLength(member.id) > 128
+            || ids.has(member.id) || typeof member.name !== 'string' || Buffer.byteLength(member.name) > 512
+            || !Array.isArray(member.color) || member.color.length !== 3
+            || !member.color.every(value => Number.isInteger(value) && value >= 0 && value <= 255)
+            || typeof member.speaking !== 'boolean' || typeof member.muted !== 'boolean' || typeof member.is_self !== 'boolean') {
+            throw new Error('Invalid Yaplay member.');
+        }
+        ids.add(member.id);
+        if (member.avatar_url !== undefined) {
+            const url = typeof member.avatar_url === 'string' && parseurl(member.avatar_url);
+            if (!url || url.protocol !== 'https:' || url.username || url.password || Buffer.byteLength(member.avatar_url) > 2048) {
+                throw new Error('Invalid Yaplay avatar.');
+            }
+        }
+    }
+    if (Buffer.byteLength(JSON.stringify(snapshot)) > 1024 * 1024 - 1024) throw new Error('Yaplay state is too large.');
+    if (!Array.isArray(notices) || notices.length > 5 || notices.some(notice =>
+        !yaplayfields(notice, ['title', 'body']) || typeof notice.title !== 'string' || typeof notice.body !== 'string'
+        || Buffer.byteLength(notice.title) > 512 || Buffer.byteLength(notice.body) > 4096)) {
+        throw new Error('Invalid Yaplay notifications.');
+    }
+}
+
+function yaplayclose(connection) {
+    clearTimeout(connection.timeout);
+    const socket = connection.socket;
+    connection.socket = null;
+    connection.actions = [];
+    connection.last = '';
+    if (socket) {
+        try {
+            if (socket.readyState === WebSocket.OPEN) socket.send('{"type":"voice_state","in_call":false,"members":[]}');
+            socket.close();
+        } catch (e) {}
+    }
+}
+
+function yaplayconnect(connection) {
+    if (connection.socket || Date.now() < connection.retry) return;
+    const socket = new WebSocket(`ws://127.0.0.1:${connection.port}`);
+    connection.socket = socket;
+    let accepted = null;
+    const failed = () => {
+        if (connection.socket !== socket) return;
+        yaplayclose(connection);
+        connection.retry = Date.now() + 2000;
+    };
+    connection.timeout = setTimeout(failed, 2000);
+    socket.addEventListener('open', () => {
+        if (connection.socket !== socket) return;
+        clearTimeout(connection.timeout);
+        try {
+            socket.send(JSON.stringify({ type: 'hello', version: 2, name: 'Yap++', client_version: app.getVersion(), actions: yaplayActions }));
+        } catch { failed(); return; }
+        // A v1 overlay never acknowledges the hello. It supports all three controls.
+        connection.timeout = setTimeout(() => {
+            if (connection.socket !== socket || socket.readyState !== WebSocket.OPEN || accepted !== null) return;
+            try {
+                socket.send('{"type":"hello","version":1,"controls":true}');
+                accepted = new Set(yaplayActions);
+                connection.last = '';
+            } catch { failed(); }
+        }, 1500);
+    });
+    socket.addEventListener('error', failed);
+    socket.addEventListener('close', failed);
+    socket.addEventListener('message', event => {
+        if (connection.socket !== socket) return;
+        if (typeof event.data !== 'string' || Buffer.byteLength(event.data) > 4096) { failed(); return; }
+        try {
+            const action = JSON.parse(event.data);
+            if (action?.type === 'hello_ack' && accepted === null && action.version === 2
+                && Array.isArray(action.actions) && action.actions.every(name => typeof name === 'string')) {
+                clearTimeout(connection.timeout);
+                accepted = new Set(yaplayActions.filter(name => action.actions.includes(name)));
+                return;
+            }
+            if (!accepted?.has(action?.type)) return;
+            const valid = (yaplayfields(action, ['type', 'muted']) && action.type === 'set_mute' && typeof action.muted === 'boolean')
+                || (yaplayfields(action, ['type', 'deafened']) && action.type === 'set_deafen' && typeof action.deafened === 'boolean')
+                || (yaplayfields(action, ['type']) && action.type === 'leave_call');
+            if (valid && connection.actions.length < 8) connection.actions.push(action);
+        } catch (e) {}
+    });
+}
+
+ipcMain.handle('yaplay-start', (event, sessionid, port) => {
+    const senderid = yaplaysource(event);
+    if (typeof sessionid !== 'string' || !sessionid.length || sessionid.length > 64
+        || !Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid Yaplay session or port.');
+    const old = yaplaysessions.get(senderid);
+    if (old) yaplayclose(old);
+    yaplaysessions.set(senderid, { sessionid, port, socket: null, actions: [], last: '', call: null, seen: Date.now(), retry: 0 });
+});
+
+ipcMain.handle('yaplay-exchange', (event, sessionid, snapshot, notices, call) => {
+    const senderid = yaplaysource(event);
+    yaplayvalidate(snapshot, notices);
+    if (typeof call !== 'string' || call.length > 512) throw new Error('Invalid Yaplay call.');
+    const connection = yaplaysessions.get(senderid);
+    if (!connection || connection.sessionid !== sessionid) throw new Error('Yaplay session expired.');
+    connection.seen = Date.now();
+    if (connection.call !== call) { connection.actions = []; connection.call = call; }
+    yaplayconnect(connection);
+    const socket = connection.socket;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return { connected: false, actions: [] };
+    try {
+        if (socket.bufferedAmount > 1024 * 1024) throw new Error('Yaplay is not receiving updates.');
+        const state = JSON.stringify(snapshot);
+        if (connection.last !== state) {
+            socket.send(JSON.stringify({ type: 'voice_state', in_call: snapshot.in_call, members: snapshot.members }));
+            socket.send(JSON.stringify({ type: 'mic_state', muted: snapshot.muted }));
+            socket.send(JSON.stringify({ type: 'deafen_state', deafened: snapshot.deafened }));
+            connection.last = state;
+        }
+        for (const notice of notices) socket.send(JSON.stringify({ type: 'notification', ...notice }));
+        return { connected: true, actions: connection.actions.splice(0) };
+    } catch (e) {
+        yaplayclose(connection);
+        connection.retry = Date.now() + 2000;
+        return { connected: false, actions: [] };
+    }
+});
+
+ipcMain.handle('yaplay-stop', (event, sessionid) => {
+    const senderid = yaplaysource(event);
+    const connection = yaplaysessions.get(senderid);
+    if (connection && connection.sessionid === sessionid) {
+        yaplayclose(connection);
+        yaplaysessions.delete(senderid);
+    }
+});
+
+app.on('web-contents-created', (event, contents) => {
+    const senderid = contents.id;
+    const clear = () => {
+        const connection = yaplaysessions.get(senderid);
+        if (connection) yaplayclose(connection);
+        yaplaysessions.delete(senderid);
+    };
+    contents.on('did-start-navigation', (event, url, inPlace, mainFrame) => { if (mainFrame && !inPlace) clear(); });
+    contents.on('render-process-gone', clear);
+    contents.once('destroyed', clear);
+});
+
+setInterval(() => {
+    for (const [senderid, connection] of yaplaysessions) {
+        if (Date.now() - connection.seen > 5000) {
+            yaplayclose(connection);
+            yaplaysessions.delete(senderid);
+        }
+    }
+}, 1000).unref();
+
+app.on('before-quit', () => {
+    for (const connection of yaplaysessions.values()) yaplayclose(connection);
+    yaplaysessions.clear();
+});
 ipcMain.handle('get-themes', () => getthemecode());
 ipcMain.handle('get-asset', (event, assetname) => {
     const candidates = [
