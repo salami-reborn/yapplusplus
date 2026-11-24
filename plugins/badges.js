@@ -37,31 +37,31 @@
                         }
                     });
                 }
-                setTimeout(function() {
-                    const row = document.querySelector('.badge-row');
-                    if (!row) return;
-                    row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
-                    const av = document.querySelector('img[src*="/avatars/"]');
-                    if (!av) return;
-                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
-                    if (!m2) return;
-                    const uid = m2[1].toLowerCase();
-                    const entry = B.m[uid];
-                    if (!entry) return;
-                    const badgeList = Array.isArray(entry) ? entry : [entry];
-                    badgeList.forEach(function(badge, idx) {
-                        if (!badge.s) return;
-                        const c = 'yp-ftx-' + uid.slice(0, 8) + (idx > 0 ? '-' + idx : '');
-                        const i = new Image();
-                        i.className = 'ubadge ftx row ' + c;
-                        i.src = badge.s;
-                        i.title = badge.t || '';
-                        i.alt = 'Badge';
-                        i.draggable = !1;
-                        i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
-                        row.appendChild(i);
-                    });
-                }, 200);
+                const row = document.querySelector('.badge-row');
+                if (!row) return;
+                const av = document.querySelector('img[src*="/avatars/"]');
+                if (!av) return;
+                const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
+                if (!m2) return;
+                const uid = m2[1].toLowerCase();
+                const entry = B.m[uid];
+                if (!entry) return;
+                const badgeList = Array.isArray(entry) ? entry : [entry];
+                const existing = row.querySelectorAll('[class*="yp-ftx-"]').length;
+                if (existing >= badgeList.length) return;
+                row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
+                badgeList.forEach(function(badge, idx) {
+                    if (!badge.s) return;
+                    const c = 'yp-ftx-' + uid.slice(0, 8) + (idx > 0 ? '-' + idx : '');
+                    const i = new Image();
+                    i.className = 'ubadge ftx row ' + c;
+                    i.src = badge.s;
+                    i.title = badge.t || '';
+                    i.alt = 'Badge';
+                    i.draggable = !1;
+                    i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                    row.appendChild(i);
+                });
             }
         };
         try {
