@@ -131,6 +131,7 @@
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('13aa6b8b-f756-4dcb-b791-f6086ad1806e', `My alt. If this is online then I'm either testing a plugin/idk`, A.yppIcon || '');
             fanumtaxxbadge('1e15f614-cb69-44a8-8684-b4cd0c0f5834', 'Yapin.js Developer', A.yapjsbadge || '');
+            fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', 'Femboy', A.astolfodoodle)
 
             if (!this.origFetch) this.origFetch = window.fetch;
             const origFetch = this.origFetch;

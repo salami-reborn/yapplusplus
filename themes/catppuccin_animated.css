@@ -1,11 +1,22 @@
 .app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
   background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%) !important;
 }
-.topbar, nav.rail, aside.sidebar, .side-panel, .user-bar {
+.topbar, nav.rail, aside.sidebar, .side-panel {
   background: rgba(30, 30, 47, 0.5) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+.user-bar {
+  background: rgba(30, 30, 47, 0.85) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05) !important;
+  overflow: visible !important;
+}
+.profile-card, .popout, [role="dialog"], [role="menu"] {
+  z-index: 10000 !important;
+  overflow: visible !important;
 }
 .sidebar-head {
   background: transparent !important;

@@ -5,30 +5,118 @@ const custombackground = {
 
     cssEl: null,
     themeEl: null,
-    getUrl() { try { return localStorage.getItem('yapplus.bg.url') || ''; } catch (e) { return ''; } },
-    setUrl(v) { try { localStorage.setItem('yapplus.bg.url', v); } catch (e) {} this.apply(); },
+    observer: null,
+    _memUrl: '',
+    getUrl() {
+      try {
+        const u = localStorage.getItem('yapplus.bg.url');
+        if (u) {
+          this._memUrl = u;
+          return u;
+        }
+        if (this._memUrl) {
+          localStorage.setItem('yapplus.bg.url', this._memUrl);
+          return this._memUrl;
+        }
+      } catch (e) {}
+      return this._memUrl || '';
+    },
+    setUrl(v) {
+      this._memUrl = v;
+      try {
+        localStorage.setItem('yapplus.bg.url', v);
+        sessionStorage.setItem('yapplus.bg.url', v);
+      } catch (e) {}
+      this.apply();
+    },
     getOpacity() {
       const v = parseFloat(localStorage.getItem('yapplus.bg.opacity'));
       if (isNaN(v)) return 0.5;
       return Math.min(1, Math.max(0, v));
     },
-    setOpacity(v) { try { localStorage.setItem('yapplus.bg.opacity', String(v)); } catch (e) {} this.apply(); },
-    getThemeCss() { try { return localStorage.getItem('yapplus.bg.themecss') || ''; } catch (e) { return ''; } },
-    setThemeCss(v) { try { localStorage.setItem('yapplus.bg.themecss', v); } catch (e) {} this.applyTheme(); },
+    setOpacity(v) {
+      try { localStorage.setItem('yapplus.bg.opacity', String(v)); } catch (e) {}
+      this.apply();
+    },
+    getThemeCss() {
+      try { return localStorage.getItem('yapplus.bg.themecss') || ''; } catch (e) { return ''; }
+    },
+    setThemeCss(v) {
+      try { localStorage.setItem('yapplus.bg.themecss', v); } catch (e) {}
+      this.applyTheme();
+    },
+    getServerId() {
+      const active = document.querySelector('nav.rail .rail-item.active');
+      if (!active) return null;
+      const row = active.closest('[data-rail-row]');
+      if (row && (row.dataset.railRow || row.dataset.railrow)) {
+        return row.dataset.railRow || row.dataset.railrow;
+      }
+      return null;
+    },
+    getServerUrl(serverId) {
+      if (!serverId) serverId = this.getServerId();
+      if (!serverId) return '';
+      try {
+        return localStorage.getItem('yapplus.bg.server.' + serverId) || '';
+      } catch (e) {
+        return '';
+      }
+    },
+    setServerUrl(serverId, url) {
+      if (!serverId) serverId = this.getServerId();
+      if (!serverId) return;
+      try {
+        if (url && url.trim()) {
+          localStorage.setItem('yapplus.bg.server.' + serverId, url.trim());
+        } else {
+          localStorage.removeItem('yapplus.bg.server.' + serverId);
+        }
+      } catch (e) {}
+      this.apply();
+    },
+    getActiveUrl() {
+      const sId = this.getServerId();
+      if (sId) {
+        const sUrl = this.getServerUrl(sId);
+        if (sUrl && sUrl.trim()) return sUrl.trim();
+      }
+      return this.getUrl().trim();
+    },
     start() {
+      try {
+        const s = sessionStorage.getItem('yapplus.bg.url');
+        if (s && !localStorage.getItem('yapplus.bg.url')) {
+          localStorage.setItem('yapplus.bg.url', s);
+        }
+      } catch (e) {}
       this.injectCss();
       this.apply();
       this.applyTheme();
-      console.log('custom fucking background');
+      if (!this.observer) {
+        const self = this;
+        let lastServer = self.getServerId();
+        this.observer = new MutationObserver(function() {
+          const currentServer = self.getServerId();
+          if (currentServer !== lastServer) {
+            lastServer = currentServer;
+            self.apply();
+          }
+        });
+        this.observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+      }
     },
     stop() {
+      if (this.observer) {
+        this.observer.disconnect();
+        this.observer = null;
+      }
       if (this.cssEl) { this.cssEl.remove(); this.cssEl = null; }
       if (this.themeEl) { this.themeEl.remove(); this.themeEl = null; }
       document.documentElement.classList.remove('ypp-bg-active');
       const root = document.documentElement.style;
       root.removeProperty('--ypp-bg-image');
       root.removeProperty('--ypp-bg-overlay');
-      console.log('[Custom Background] disarmed');
     },
     injectCss() {
       if (this.cssEl || document.getElementById('ypp-bg-css')) return;
@@ -39,13 +127,22 @@ const custombackground = {
           --ypp-bg-image: none;
           --ypp-bg-overlay: transparent;
         }
-        html.ypp-bg-active .app {
-          background-image: linear-gradient(var(--ypp-bg-overlay), var(--ypp-bg-overlay)), var(--ypp-bg-image) !important;
+        html.ypp-bg-active body::before {
+          content: "";
+          position: fixed;
+          inset: 0;
+          z-index: -9999;
+          background-image: linear-gradient(var(--ypp-bg-overlay), var(--ypp-bg-overlay)), var(--ypp-bg-image);
           background-size: cover !important;
           background-position: center !important;
           background-repeat: no-repeat !important;
           background-attachment: fixed !important;
-          background-color: #141519 !important;
+          pointer-events: none;
+        }
+        html.ypp-bg-active,
+        html.ypp-bg-active body,
+        html.ypp-bg-active .app {
+          background-color: transparent !important;
         }
         html.ypp-bg-active nav.rail,
         html.ypp-bg-active aside.sidebar,
@@ -102,7 +199,7 @@ const custombackground = {
     },
 
     apply() {
-      const url = this.getUrl().trim();
+      const url = this.getActiveUrl();
       const op = this.getOpacity();
       const alpha = Math.max(0, Math.min(1, 1 - op));
       const overlay = 'rgba(20, 21, 25, ' + alpha.toFixed(3) + ')';
@@ -116,7 +213,7 @@ const custombackground = {
         root.style.setProperty('--ypp-bg-image', 'none');
         root.style.setProperty('--ypp-bg-overlay', 'transparent');
       }
-    },
+    }
 };
 
 window.custombackground = custombackground;

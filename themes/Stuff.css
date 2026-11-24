@@ -1,0 +1,89 @@
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background: linear-gradient(135deg, #151b29 0%, #1e283d 50%, #1a2234 100%) !important;
+}
+.topbar, nav.rail, aside.sidebar, .side-panel {
+  background: rgba(21, 27, 41, 0.75) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-right: 1px solid rgba(85, 205, 252, 0.15) !important;
+}
+.user-bar {
+  background: rgba(21, 27, 41, 0.9) !important;
+  border-right: 1px solid rgba(85, 205, 252, 0.15) !important;
+  overflow: visible !important;
+}
+.sidebar-head {
+  background: transparent !important;
+  border-bottom: 1px solid rgba(247, 168, 184, 0.15) !important;
+}
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #f0f4f8 !important;
+}
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #f7a8b8 !important;
+  transition: all 0.25s ease !important;
+}
+a:hover, .mention:hover {
+  color: #55cdfc !important;
+  text-shadow: 0 0 8px rgba(85, 205, 252, 0.6) !important;
+}
+.channel-item.active {
+  background: linear-gradient(90deg, rgba(247, 168, 184, 0.2), rgba(85, 205, 252, 0.05)) !important;
+  border-left: 3px solid #f7a8b8 !important;
+  border-radius: 0 10px 10px 0 !important;
+}
+.rail-item {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  border-radius: 14px !important;
+}
+.rail-item:hover {
+  transform: scale(1.1) !important;
+}
+.rail-item.active {
+  background: linear-gradient(135deg, rgba(85, 205, 252, 0.4), rgba(247, 168, 184, 0.4)) !important;
+  box-shadow: 0 0 12px rgba(85, 205, 252, 0.3) !important;
+}
+.msg {
+  border-radius: 10px !important;
+  margin: 4px 8px !important;
+  padding: 4px 8px !important;
+  transition: background 0.2s ease !important;
+}
+.msg:hover {
+  background: rgba(85, 205, 252, 0.04) !important;
+}
+.msg.mentioned {
+  background: linear-gradient(90deg, rgba(247, 168, 184, 0.18), transparent) !important;
+  border-left: 3px solid #f7a8b8 !important;
+}
+.composer-box {
+  background: rgba(29, 39, 58, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(85, 205, 252, 0.25) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+  transition: all 0.25s ease !important;
+}
+.composer-box:focus-within {
+  border-color: #f7a8b8 !important;
+  box-shadow: 0 0 16px rgba(247, 168, 184, 0.3) !important;
+}
+.composer-box textarea {
+  color: #f0f4f8 !important;
+}
+.reaction {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(85, 205, 252, 0.2) !important;
+  border-radius: 12px !important;
+}
+.reaction.mine {
+  background: rgba(247, 168, 184, 0.25) !important;
+  border-color: #f7a8b8 !important;
+}
+.profile-card, .popout, [role="dialog"], [role="menu"] {
+  background-color: #1a2234 !important;
+  border: 1px solid rgba(85, 205, 252, 0.2) !important;
+  border-radius: 12px !important;
+  z-index: 10000 !important;
+  overflow: visible !important;
+}

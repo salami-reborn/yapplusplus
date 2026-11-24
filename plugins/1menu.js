@@ -174,7 +174,7 @@
         <div>
           <h1><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon preview-icon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg> Yap++</h1>
           <h2>The <b>Cutest</b> Client mod for yapper</h2>
-          <h3 style="color: #ff6b6b;"> <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-certificate preview-icon"><path d="M12 10H6"/><path d="m20.69 15.479 1.29 4.88a.5.5 0 01-.698.591l-1.843-.849a1 1 0 00-.879.001l-1.846.85a.5.5 0 01-.692-.593l1.29-4.88"/><path d="M22 6.675V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h8"/><path d="M6 14h4"/><circle cx="19" cy="13" r="3"/></svg> Version: U0005!</h3>
+          <h3 style="color: #ff6b6b;"> <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-certificate preview-icon"><path d="M12 10H6"/><path d="m20.69 15.479 1.29 4.88a.5.5 0 01-.698.591l-1.843-.849a1 1 0 00-.879.001l-1.846.85a.5.5 0 01-.692-.593l1.29-4.88"/><path d="M22 6.675V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h8"/><path d="M6 14h4"/><circle cx="19" cy="13" r="3"/></svg> Version: U0005.5!</h3>
         </div>
       </div>
       <hr><p></p>
@@ -446,6 +446,13 @@
         <input id="ypp-bg-opacity" type="range" min="0" max="100" step="1" style="flex:1;">
         <span id="ypp-bg-opacity-val" style="font-size:12px;color:#e27ed3;width:42px;text-align:right;">50%</span>
       </div>
+      <p style="font-size:12px;color:#949ba4;margin:12px 0 6px;">Current Server Background (this background will <b>ONLY</b> be used in the server <b>you are currently in</b></p>
+      <p style="font-size:8px;color:#949ba4;margin:12px 0 6px;">guys please stop forgetting to enable the plugin before making a bug report</p>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <input id="ypp-bg-server-url" type="text" placeholder="direct image link but for this server's background" autocomplete="off" class="yp-input" style="flex:1;">
+        <button id="ypp-bg-server-save" class="yp-btn" style="padding:6px 12px;font-size:12px;">Done</button>
+        <button id="ypp-bg-server-clear" class="yp-btn yp-btn-gray" style="padding:6px 12px;font-size:12px;">Clear</button>
+      </div>
       <p style="font-size:12px;color:#949ba4;margin:0 0 6px;">Custom CSS theme</p>
       <textarea id="ypp-bg-themecss" rows="8" placeholder=".msg-author { color: hotpink !important; }" style="width:100%;background:#1e1f22;border:1px solid #3f4147;border-radius:6px;color:#dbdee1;padding:8px 10px;font-size:13px;font-family:monospace;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>
     `;
@@ -454,17 +461,61 @@
     const opinput = cbsection.querySelector('#ypp-bg-opacity');
     const opval = cbsection.querySelector('#ypp-bg-opacity-val');
     const cssinput = cbsection.querySelector('#ypp-bg-themecss');
+    const srvinput = cbsection.querySelector('#ypp-bg-server-url');
+    const srvsave = cbsection.querySelector('#ypp-bg-server-save');
+    const srvclear = cbsection.querySelector('#ypp-bg-server-clear');
     if (window.custombackground) {
       urlinput.value = window.custombackground.getUrl();
       opinput.value = String(Math.round(window.custombackground.getOpacity() * 100));
       opval.textContent = opinput.value + '%';
       cssinput.value = window.custombackground.getThemeCss();
+      if (srvinput && window.custombackground.getServerUrl) {
+        srvinput.value = window.custombackground.getServerUrl() || '';
+      }
       urlinput.addEventListener('input', () => window.custombackground.setUrl(urlinput.value));
       opinput.addEventListener('input', () => {
         window.custombackground.setOpacity(parseInt(opinput.value, 10) / 100);
         opval.textContent = opinput.value + '%';
       });
       cssinput.addEventListener('input', () => window.custombackground.setThemeCss(cssinput.value));
+      if (srvsave && srvinput && window.custombackground.setServerUrl) {
+        srvsave.addEventListener('click', () => {
+          window.custombackground.setServerUrl(null, srvinput.value);
+        });
+      }
+      if (srvclear && srvinput && window.custombackground.setServerUrl) {
+        srvclear.addEventListener('click', () => {
+          srvinput.value = '';
+          window.custombackground.setServerUrl(null, '');
+        });
+      }
+    }
+
+    const fontsection = document.createElement('div');
+    fontsection.className = 'yp-section';
+    fontsection.innerHTML = `
+      <h3>Custom Font</h3>
+      <p style="font-size:12px;color:#949ba4;margin:0 0 8px;">Set a custom font family (e.g. Comic Sans MS, JetBrains Mono, Inter).</p>
+      <div style="display:flex;gap:8px;">
+        <input id="ypp-custom-font-input" type="text" placeholder="Font name (e.g. Comic Sans MS, monospace)..." autocomplete="off" class="yp-input" style="flex:1;">
+        <button id="ypp-custom-font-save" class="yp-btn" style="padding:6px 12px;font-size:12px;">Apply</button>
+        <button id="ypp-custom-font-reset" class="yp-btn yp-btn-gray" style="padding:6px 12px;font-size:12px;">Reset</button>
+      </div>
+    `;
+    p.appendChild(fontsection);
+    const fontInput = fontsection.querySelector('#ypp-custom-font-input');
+    const fontSave = fontsection.querySelector('#ypp-custom-font-save');
+    const fontReset = fontsection.querySelector('#ypp-custom-font-reset');
+    if (window.customfont) {
+      const curFont = window.customfont.getFont();
+      fontInput.value = (curFont === 'inherit') ? '' : curFont;
+      fontSave.addEventListener('click', () => {
+        window.customfont.setFont(fontInput.value || 'inherit');
+      });
+      fontReset.addEventListener('click', () => {
+        fontInput.value = '';
+        window.customfont.setFont('inherit');
+      });
     }
 
     p.appendChild(builddevsection());
@@ -705,6 +756,16 @@
     });
     observer.observe(main, { childList: true });
 
+    const existingHeader = document.getElementById('yapplus-nav-header');
+    if (existingHeader) existingHeader.remove();
+
+    const header = document.createElement('div');
+    header.id = 'yapplus-nav-header';
+    header.style.cssText = 'box-sizing:border-box;width:100%;padding:4px 0;';
+    header.innerHTML = '<div style="box-sizing:border-box;height:1px;background:#4e5058;opacity:0.8;margin:6px 6px;"></div>' +
+      '<div style="box-sizing:border-box;padding:2px 8px;font-size:11px;font-weight:700;color:#949ba4;opacity:0.8;letter-spacing:0.04em;text-transform:uppercase;user-select:none;">Yap++</div>';
+    nav.appendChild(header);
+
     const btn = document.createElement('button');
     btn.id = navid;
     btn.innerHTML = `${SVGS.plugins} <span>Yap++ Plugins</span>`;
@@ -762,7 +823,7 @@
     updatecustomnav();
 
     nav.addEventListener('pointerdown', (e) => {
-      const ours = [btn, settingsbtn, themesbtn, custombtn];
+      const ours = [header, btn, settingsbtn, themesbtn, custombtn];
       if (!ours.some((b) => e.target === b || b.contains(e.target))) {
         currentMode = null;
         [panelid, settingspanelid, themespanelid, custompanelid].forEach(id => {
