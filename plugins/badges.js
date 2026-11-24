@@ -14,28 +14,33 @@
                     if (!h) return;
                     const mid = e.dataset.messageId;
                     for (const [k, v] of Object.entries(B.m)) {
-                        const c = 'yp-ftx-' + k.slice(0, 8), x = h.querySelector(':scope>.' + c), me = a.get(mid) === k;
-                        if (me && !x) {
-                            const i = new Image();
-                            i.className = c;
-                            i.src = v.s;
-                            i.title = v.t;
-                            i.alt = 'Badge';
-                            i.draggable = !1;
-                            const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
-                            h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
-                        } else if (!me && x) x.remove();
-                        else if (me && (x.src !== v.s || x.title !== v.t)) {
-                            x.src = v.s;
-                            x.title = v.t;
-                        }
+                        const badges = Array.isArray(v) ? v : [v];
+                        const me = a.get(mid) === k;
+                        badges.forEach(function(badge, idx) {
+                            const c = 'yp-ftx-' + k.slice(0, 8) + (idx > 0 ? '-' + idx : '');
+                            const x = h.querySelector(':scope>.' + c);
+                            if (me && badge.s && !x) {
+                                const i = new Image();
+                                i.className = c;
+                                i.src = badge.s;
+                                i.title = badge.t;
+                                i.alt = 'Badge';
+                                i.draggable = !1;
+                                const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
+                                h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
+                            } else if (!me && x) x.remove();
+                            else if (me && badge.s && (x.src !== badge.s || x.title !== badge.t)) {
+                                x.src = badge.s;
+                                x.title = badge.t;
+                            }
+                        });
                     }
                 });
             }
         };
         
-        if (B.m[id]) { if (!src) return B.m[id]; return B.m[id] = { s: src, t: hover || '' }, B.p(); }
-        B.m[id] = { s: src, t: hover || '' };
+        if (!B.m[id]) B.m[id] = [];
+        if (src) B.m[id].push({ s: src, t: hover || '' });
         
         if (!document.getElementById('yp-ftx-css')) {
             const s = document.createElement('style');
@@ -132,7 +137,8 @@
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('13aa6b8b-f756-4dcb-b791-f6086ad1806e', `My alt. If this is online then I'm either testing a plugin/idk`, A.yppIcon || '');
             fanumtaxxbadge('1e15f614-cb69-44a8-8684-b4cd0c0f5834', 'Yapin.js Developer', A.yapjsbadge || '');
-            fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', 'Femboy', A.astolfodoodle || '')
+            fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', 'Femboy', A.astolfodoodle || '');
+            fanumtaxxbadge('6dcac643-07bc-4908-972e-30e227554333', 'Nyu ❤', A.gothheart || '')
 
             if (!this.origFetch) this.origFetch = window.fetch;
             const origFetch = this.origFetch;

@@ -31,7 +31,8 @@
                     chud: await window.electronAPI.getAsset('CERTIFIEDCHUD.png'),
                     yppIcon: await window.electronAPI.getAsset('yppIcon.png'),
                     yapjsbadge: await window.electronAPI.getAsset('yapjsbadge.png'),
-                    astolfodoodle: await window.electronAPI.getAsset('astolfo_doodle.png')
+                    astolfodoodle: await window.electronAPI.getAsset('astolfo_doodle.png'),
+                    gothheart: await window.electronAPI.getAsset('blackheart.png')
                 };
                 await webview.executeJavaScript(`window.YapPlusAssets = ${JSON.stringify(assets)};`);
                 setTimeout(async () => {
