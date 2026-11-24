@@ -13,26 +13,21 @@
                         const h = e.querySelector('.msg-head .msg-author')?.parentNode;
                         if (!h) return;
                         const mid = e.dataset.messageId;
+                        h.querySelectorAll(':scope>[class*="yp-ftx-"]').forEach(function(el) { el.remove(); });
                         for (const [k, v] of Object.entries(B.m)) {
                             const badges = Array.isArray(v) ? v : [v];
                             const me = a.get(mid) === k;
                             badges.forEach(function(badge, idx) {
-                                const c = 'yp-ftx-' + k.slice(0, 8) + (idx > 0 ? '-' + idx : '');
-                                const x = h.querySelector(':scope>.' + c);
-                                if (me && badge.s && !x) {
-                                    const i = new Image();
-                                    i.className = c;
-                                    i.src = badge.s;
-                                    i.title = badge.t;
-                                    i.alt = 'Badge';
-                                    i.draggable = !1;
-                                    const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
-                                    h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
-                                } else if (!me && x) x.remove();
-                                else if (me && badge.s && (x.src !== badge.s || x.title !== badge.t)) {
-                                    x.src = badge.s;
-                                    x.title = badge.t;
-                                }
+                                if (!me || !badge.s) return;
+                                const c = 'yp-ftx-' + k.slice(0, 8) + (badges.length > 1 && idx > 0 ? '-' + idx : '');
+                                const i = new Image();
+                                i.className = c;
+                                i.src = badge.s;
+                                i.title = badge.t;
+                                i.alt = 'Badge';
+                                i.draggable = !1;
+                                const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
+                                h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
                             });
                         }
                     });
@@ -47,12 +42,10 @@
                 const entry = B.m[uid];
                 if (!entry) return;
                 const badgeList = Array.isArray(entry) ? entry : [entry];
-                const existing = row.querySelectorAll('[class*="yp-ftx-"]').length;
-                if (existing >= badgeList.length) return;
-                row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
+                row.querySelectorAll('[class*="yp-ftx-"]').forEach(function(el) { el.remove(); });
                 badgeList.forEach(function(badge, idx) {
                     if (!badge.s) return;
-                    const c = 'yp-ftx-' + uid.slice(0, 8) + (idx > 0 ? '-' + idx : '');
+                    const c = 'yp-ftx-' + uid.slice(0, 8) + (badgeList.length > 1 && idx > 0 ? '-' + idx : '');
                     const i = new Image();
                     i.className = 'ubadge ftx row ' + c;
                     i.src = badge.s;
@@ -70,7 +63,7 @@
         } catch (e) {}
         
         if (!B.m[id]) B.m[id] = [];
-        if (src) B.m[id].push({ s: src, t: hover || '' });
+        if (src && !B.m[id].some(function(b) { return b.s === src; })) B.m[id].push({ s: src, t: hover || '' });
         try { localStorage.setItem('yap_ftx_badges', JSON.stringify(B.m)); } catch (e) {}
         
         if (!document.getElementById('yp-ftx-css')) {
@@ -81,7 +74,7 @@
         }
         B.p();
         if (!B.t) B.t = setInterval(B.p, 1e3);
-        if (!B.o) (B.o = new MutationObserver(B.p)).observe(document.documentElement, { childList: !0, subtree: !0 });
+        if (!B.o) (B.o = new MutationObserver(function(){clearTimeout(B._m);B._m=setTimeout(B.p,30)})).observe(document.documentElement,{childList:!0,subtree:!0});
     }
 
     const staffbadge = {
@@ -155,6 +148,8 @@
         },
 
         start() {
+            if (this._started) return;
+            this._started = true;
             const self = this;
 
             fanumtaxxbadge('3d32bc29-8de7-4085-a8c9-22b3acf285f1', `VIM, The most goated text editor oat`, A.vim || '');
