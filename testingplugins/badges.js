@@ -47,24 +47,48 @@
                 });
             }
 
-            const row = document.querySelector('.badge-row');
-            if (!row) return;
-            const av = document.querySelector('img[src*="/avatars/"]');
-            if (!av) return;
-            const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
-            if (!m2) return;
-            const uid = m2[1].toLowerCase();
-            const entry = B.m[uid];
-            if (!entry || !entry.s) return;
-            row.querySelectorAll('[class*="yp-ftx-"]').forEach(function(el) { el.remove(); });
-            const i = new Image();
-            i.className = 'yp-ftx-' + uid.slice(0, 8);
-            i.src = entry.s;
-            i.title = entry.t || '';
-            i.alt = 'Badge';
-            i.draggable = !1;
-            i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
-            row.appendChild(i);
+            let profileContainer = document.querySelector('.profile-dock, .user-dock, .profile-card, .dm-dock, .modal, .overlay, [role="dialog"]');
+            if (!profileContainer) {
+                const existingRow = document.querySelector('.badge-row');
+                if (existingRow) {
+                    profileContainer = existingRow.closest('.profile-dock, .user-dock, .profile-card, .dm-dock, .modal, .overlay, [role="dialog"]') || existingRow.parentElement;
+                }
+            }
+
+            if (profileContainer && profileContainer !== document.body) {
+                const av = profileContainer.querySelector('img[src*="/avatars/"]');
+                if (av) {
+                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
+                    if (m2) {
+                        const uid = m2[1].toLowerCase();
+                        const entry = B.m[uid];
+                        if (entry && entry.s) {
+                            let row = profileContainer.querySelector('.badge-row');
+                        
+                            if (!row) {
+                                const nameEl = profileContainer.querySelector('.profile-name, .user-name, .username, .name, h2, h3');
+                                if (nameEl) {
+                                    row = document.createElement('div');
+                                    row.className = 'badge-row';
+                                    nameEl.parentNode.insertBefore(row, nameEl.nextSibling);
+                                }
+                            }
+
+                            if (row) {
+                                row.querySelectorAll('[class*="yp-ftx-"]').forEach(function(el) { el.remove(); });
+                                const i = new Image();
+                                i.className = 'yp-ftx-' + uid.slice(0, 8);
+                                i.src = entry.s;
+                                i.title = entry.t || '';
+                                i.alt = 'Badge';
+                                i.draggable = !1;
+                                i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                                row.appendChild(i);
+                            }
+                        }
+                    }
+                }
+            }
         } catch (e) {}
     }
 
