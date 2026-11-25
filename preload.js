@@ -14,5 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     restartApp: () => ipcRenderer.invoke('restart-app'),
     getThemes: () => ipcRenderer.invoke('get-themes'),
     saveCustomPlugin: (filename, code) => ipcRenderer.invoke('save-custom-plugin', filename, code),
-    openExternal: (url) => ipcRenderer.invoke('open-external', url)
+    openExternal: (url) => ipcRenderer.invoke('open-external', url),
+    fetchYapmodRelease: () => ipcRenderer.invoke('fetch-yapmod-release'),
+    runYapmodClient: (source) => ipcRenderer.invoke('run-yapmod-client', source),
+    stopYapmodClient: () => ipcRenderer.invoke('stop-yapmod-client')
 });
