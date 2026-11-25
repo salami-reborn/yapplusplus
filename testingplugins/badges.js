@@ -1,4 +1,3 @@
-// GITHUB. FUCKING. WORKFLOWS.
 (function() {
     const A = window.YapPlusAssets || {};
 
@@ -48,37 +47,53 @@
                 });
             }
 
-            // --- PROFILE BADGES (Fixed & Implemented) ---
             document.querySelectorAll('.badge-row, span.badge-row').forEach(function(row) {
                 let container = row.parentElement;
-                let av = null;
-                
-                // Walk up the DOM up to 6 levels to find the avatar image for this specific profile
+                let uid = null;
+
                 for (let i = 0; i < 6 && container && container !== document.body; i++) {
-                    av = container.querySelector('img[src*="/avatars/"]');
-                    if (av) break;
+                    const av = container.querySelector('img[src*="/avatars/"]');
+                    if (av) {
+                        const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
+                        if (m2) {
+                            uid = m2[1].toLowerCase();
+                            break;
+                        }
+                    }
                     container = container.parentElement;
                 }
 
-                if (av) {
-                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
-                    if (m2) {
-                        const uid = m2[1].toLowerCase();
-                        const entry = B.m[uid];
-                        if (entry && entry.s) {
-                            // Remove existing custom badge to prevent duplicates
-                            row.querySelectorAll('[class*="yp-ftx-"]').forEach(function(el) { el.remove(); });
-                            
-                            // Append the custom badge to the badge-row
-                            const i = new Image();
-                            i.className = 'yp-ftx-' + uid.slice(0, 8);
-                            i.src = entry.s;
-                            i.title = entry.t || '';
-                            i.alt = 'Badge';
-                            i.draggable = !1;
-                            i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
-                            row.appendChild(i);
+                if (!uid) {
+                    let textContainer = row.parentElement;
+                    for (let i = 0; i < 6 && textContainer && textContainer !== document.body; i++) {
+                        const idMatch = textContainer.textContent.match(/ID\s+([a-f0-9]{8})/i);
+                        if (idMatch) {
+                            const shortId = idMatch[1].toLowerCase();
+                            const foundKey = Object.keys(B.m).find(k => k.startsWith(shortId));
+                            if (foundKey) {
+                                uid = foundKey;
+                                break;
+                            }
                         }
+                        textContainer = textContainer.parentElement;
+                    }
+                }
+
+                if (uid) {
+                    let entry = B.m[uid];
+                    if (!entry && uid.length > 8) entry = B.m[uid.slice(0, 8)];
+                    
+                    if (entry && entry.s) {
+                        row.querySelectorAll('[class*="yp-ftx-"]').forEach(function(el) { el.remove(); });
+                        
+                        const i = new Image();
+                        i.className = 'yp-ftx-' + uid.slice(0, 8);
+                        i.src = entry.s;
+                        i.title = entry.t || '';
+                        i.alt = 'Badge';
+                        i.draggable = !1;
+                        i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                        row.appendChild(i);
                     }
                 }
             });
