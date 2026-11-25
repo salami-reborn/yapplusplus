@@ -1,3 +1,4 @@
+// GITHUB WORKFLOWS BOT, FUCK YOUUUUUU. ACTUALLY LIKE GENUINELY FUCK YOU.
 (function() {
     const A = window.YapPlusAssets || {};
     
