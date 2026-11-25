@@ -4,6 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const hotdir = process.env.YAPPLUS_HOT_DIR;
 const appdir = process.env.YAPPLUS_APP_DIR;
+const localmode = process.env.YAPPLUS_LOCAL === '1' || process.env.YAPPLUS_DEV === '1';
 const internalhosts = ['yapper.website', 'yapin.gg'];
 const externalprotocols = ['http:', 'https:', 'mailto:', 'tel:'];
 const passprotocols = ['blob:', 'about:', 'devtools:'];
@@ -11,7 +12,7 @@ const passprotocols = ['blob:', 'about:', 'devtools:'];
 
 
 async function updatebadges() {
-    if (!hotdir) return;
+    if (!hotdir || localmode) return;
 
     const headers = {
         'User-Agent': 'YapPlusPlus-App',
@@ -105,20 +106,33 @@ app.on('web-contents-created', (event, contents) => {
 });
 
 function resolve(relpath) {
+    const localpath = path.join(appdir, relpath);
+    if (localmode) return localpath;
     if (hotdir) {
         const hotpath = path.join(hotdir, relpath);
         if (fs.existsSync(hotpath)) return hotpath;
     }
-    return path.join(appdir, relpath);
+    return localpath;
 }
 
+function getplugindirs() {
+    const dirs = [
+        path.join(appdir, 'plugins'),
+        hotdir ? path.join(hotdir, 'plugins') : null
+    ].filter(Boolean);
+    return localmode ? dirs : dirs.reverse();
+}
 
+function getthemedirs() {
+    const dirs = [
+        path.join(appdir, 'themes'),
+        hotdir ? path.join(hotdir, 'themes') : null
+    ].filter(Boolean);
+    return localmode ? dirs : dirs.reverse();
+}
 
 function getplugincode() {
-    const dirs = [
-        hotdir ? path.join(hotdir, 'plugins') : null,
-        path.join(appdir, 'plugins')
-    ].filter(Boolean);
+    const dirs = getplugindirs();
     const files = new Map();
     let combinedcode = '';
     for (const dir of dirs) {
@@ -139,10 +153,7 @@ function getplugincode() {
 }
 
 function getthemecode() {
-    const dirs = [
-        hotdir ? path.join(hotdir, 'themes') : null,
-        path.join(appdir, 'themes')
-    ].filter(Boolean);
+    const dirs = getthemedirs();
     const themes = {};
     for (const dir of dirs) {
         if (!fs.existsSync(dir)) continue;
@@ -347,9 +358,10 @@ app.on('before-quit', () => {
 ipcMain.handle('get-themes', () => getthemecode());
 ipcMain.handle('get-asset', (event, assetname) => {
     const candidates = [
-        hotdir ? path.join(hotdir, 'assets', assetname) : null,
-        path.join(appdir, 'assets', assetname)
+        path.join(appdir, 'assets', assetname),
+        hotdir ? path.join(hotdir, 'assets', assetname) : null
     ].filter(Boolean);
+    if (!localmode) candidates.reverse();
     for (const assetpath of candidates) {
         if (fs.existsSync(assetpath)) {
             try {

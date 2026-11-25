@@ -6,6 +6,7 @@
   "main": "app.js",
   "scripts": {
     "start": "electron-forge start",
+    "dev": "node dev.js",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "clean": "node clean.js"
