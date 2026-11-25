@@ -1,3 +1,4 @@
+// GITHUB. FUCKING. WORKFLOWS.
 (function() {
     const A = window.YapPlusAssets || {};
 
