@@ -20,11 +20,7 @@
  "plugins/0core.js": "355398d27989de956a02675113a57a7a7d1a77b2",
  "plugins/1menu.js": "f05ed8c86a855f01a40514f451b2dbe18fca1bec",
  "plugins/alwaystrust.js": "832f18413f79639aeeee1d90184318bfb8932e79",
-<<<<<<< HEAD
  "plugins/badges.js": "de7761c512746ff12f486e7f1d279a6b22e00fb9",
-=======
- "plugins/badges.js": "2679e4cf5273457a28f1ff8c36f61675a282ebce",
->>>>>>> e2c410d53249984ae74bcd454ec2bdcd9b6c1c17
  "plugins/charactercounter.js": "89d0a6b55d95fe4af6d41c2f45ffdc34ad23a267",
  "plugins/custombackground.js": "0a312eb3c5bfbd61e565cbe8bd132fd3fc073338",
  "plugins/customfont.js": "751df95215ca63a598426aa4bc611c3742e4e543",
