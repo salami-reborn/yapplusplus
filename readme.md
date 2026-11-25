@@ -46,8 +46,12 @@ If you want to contribute but first test out your plugin, Then you have to self-
 ```bash
   git clone https://github.com/salami-reborn/yapplusplus
   npm install
-  npm start
+  npm run dev
 ```
+
+`npm run dev` loads `plugins/`, `themes/` and `assets/` straight from the repo (and skips the GitHub sync of `badges.js`), so your local edits show up when you restart. `npm start` behaves like a normal release build and uses the downloaded `yapplus-hot` files.
+
+You can also set `YAPPLUS_LOCAL=1` (or pass `--local`) when launching Electron yourself.
 
 Common bugs & how to fix:
 * Can't get other files like my customplugin because I updated:

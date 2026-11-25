@@ -31,6 +31,69 @@
                         }
                     }
                 });
+                document.querySelectorAll('.pv2, .profile-card').forEach(card => {
+                    const av = card.querySelector('.pv-avatar img[src*="/avatars/"]')
+                        || card.querySelector('.profile-card-avatar img[src*="/avatars/"]')
+                        || Array.from(card.querySelectorAll('img[src*="/avatars/"]')).find(img => !img.closest('.pc2-mutual-row, .pc2-mutuals, .badge-row'));
+                    if (!av) return;
+                    const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//i);
+                    if (!m2) return;
+                    const uid = m2[1].toLowerCase();
+                    const entry = B.m[uid];
+                    const host = card.querySelector('.pv-chips') || card.querySelector('.badge-row')?.parentNode;
+                    if (!host) return;
+
+                    const wanted = [];
+                    if (typeof staffbadge < 'u') {
+                        if (staffbadge.BADGE_SRC && staffbadge.isBadged(uid)) wanted.push({
+                            key: 'staff', cls: 'yp-staff-badge', src: staffbadge.BADGE_SRC,
+                            title: 'Yap++ Contributor. Legend.', alt: 'Yap++',
+                        });
+                        if (staffbadge.HELPER_BADGE_SRC && staffbadge.isHelper(uid)) wanted.push({
+                            key: 'helper', cls: 'yp-helper-badge yp-extra-badge', src: staffbadge.HELPER_BADGE_SRC,
+                            title: 'Yap++ helper. Legend.', alt: 'Helper',
+                        });
+                    }
+                    if (entry) wanted.push({
+                        key: 'ftx', cls: 'yp-ftx-' + uid.slice(0, 8), src: entry.s,
+                        title: entry.t || '', alt: 'Badge',
+                    });
+
+                    let rows = Array.from(host.querySelectorAll(':scope > .badge-row'));
+                    if (!rows.length) {
+                        if (!wanted.length) {
+                            const own = host.querySelector(':scope > .badge-row.yp-ftx-row');
+                            if (own) own.remove();
+                            return;
+                        }
+                        const own = document.createElement('span');
+                        own.className = 'badge-row yp-ftx-row';
+                        host.appendChild(own);
+                        rows = [own];
+                    }
+
+                    rows.forEach(row => {
+                        const keep = new Set();
+                        wanted.forEach(w => {
+                            let el = row.querySelector(':scope > .' + w.cls.split(' ')[0]);
+                            if (!el) {
+                                el = new Image();
+                                el.className = w.cls;
+                                el.alt = w.alt;
+                                el.draggable = !1;
+                                if (w.key === 'ftx') el.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                                row.appendChild(el);
+                            }
+                            keep.add(el);
+                            if (el.getAttribute('src') !== w.src) el.src = w.src;
+                            if (el.title !== w.title) el.title = w.title;
+                        });
+                        row.querySelectorAll(':scope > .yp-staff-badge, :scope > .yp-helper-badge, :scope > [class*="yp-ftx-"]').forEach(el => {
+                            if (!keep.has(el)) el.remove();
+                        });
+                        if (!wanted.length && row.classList.contains('yp-ftx-row') && !row.children.length) row.remove();
+                    });
+                });
             }
         };
         
