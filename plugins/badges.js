@@ -7,29 +7,48 @@
             m: {}, 
             p() {
                 const a = typeof staffbadge < 'u' && staffbadge.msgAuthor;
-                if (!a) return;
-                document.querySelectorAll('.msg[data-message-id]').forEach(e => {
-                    const h = e.querySelector('.msg-head .msg-author')?.parentNode;
-                    if (!h) return;
-                    const mid = e.dataset.messageId;
-                    for (const [k, v] of Object.entries(B.m)) {
-                        const c = 'yp-ftx-' + k.slice(0, 8), x = h.querySelector(':scope>.' + c), me = a.get(mid) === k;
-                        if (me && !x) {
-                            const i = new Image();
-                            i.className = c;
-                            i.src = v.s;
-                            i.title = v.t;
-                            i.alt = 'Badge';
-                            i.draggable = !1;
-                            const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
-                            h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
-                        } else if (!me && x) x.remove();
-                        else if (me && (x.src !== v.s || x.title !== v.t)) {
-                            x.src = v.s;
-                            x.title = v.t;
+                if (a) {
+                    document.querySelectorAll('.msg[data-message-id]').forEach(e => {
+                        const h = e.querySelector('.msg-head .msg-author')?.parentNode;
+                        if (!h) return;
+                        const mid = e.dataset.messageId;
+                        for (const [k, v] of Object.entries(B.m)) {
+                            const c = 'yp-ftx-' + k.slice(0, 8), x = h.querySelector(':scope>.' + c), me = a.get(mid) === k;
+                            if (me && !x) {
+                                const i = new Image();
+                                i.className = c;
+                                i.src = v.s;
+                                i.title = v.t;
+                                i.alt = 'Badge';
+                                i.draggable = !1;
+                                const o = h.querySelectorAll(':scope>.yp-staff-badge,:scope>.yp-helper-badge,:scope>.yp-extra-badge');
+                                h.insertBefore(i, (o.length ? o[o.length - 1] : h.querySelector('.msg-author')).nextSibling);
+                            } else if (!me && x) x.remove();
+                            else if (me && (x.src !== v.s || x.title !== v.t)) {
+                                x.src = v.s;
+                                x.title = v.t;
+                            }
                         }
-                    }
-                });
+                    });
+                }
+                const row = document.querySelector('.badge-row');
+                if (!row) return;
+                const av = document.querySelector('img[src*="/avatars/"]');
+                if (!av) return;
+                const m2 = av.src.match(/\/avatars\/([0-9a-f-]+)\//);
+                if (!m2) return;
+                const uid = m2[1].toLowerCase();
+                const entry = B.m[uid];
+                if (!entry) return;
+                row.querySelectorAll('[class*="yp-ftx-"]').forEach(el => el.remove());
+                const i = new Image();
+                i.className = 'yp-ftx-' + uid.slice(0, 8);
+                i.src = entry.s;
+                i.title = entry.t || '';
+                i.alt = 'Badge';
+                i.draggable = !1;
+                i.style = 'width:17px;height:17px;vertical-align:-3px;margin-left:4px;';
+                row.appendChild(i);
             }
         };
         
