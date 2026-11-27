@@ -181,6 +181,75 @@ function yaplaysource(event) {
     return event.sender.id;
 }
 
+function yapmodsource(event) {
+    const frame = event.senderFrame;
+    const url = frame && parseurl(frame.url);
+    if (event.sender.getType() !== 'webview' || frame !== event.sender.mainFrame || !url
+        || !['https://yapper.website', 'https://www.yapper.website', 'https://yapin.gg', 'https://www.yapin.gg'].includes(url.origin)) {
+        throw new Error('Yapmod requires the Yapin window.');
+    }
+    return event.sender;
+}
+
+ipcMain.handle('run-yapmod-client', async (event, source) => {
+    const contents = yapmodsource(event);
+    if (typeof source !== 'string' || !source.trim() || Buffer.byteLength(source, 'utf8') > 2 * 1024 * 1024) {
+        throw new Error('Invalid Yapmod client bundle.');
+    }
+    await contents.executeJavaScript(source);
+    return true;
+});
+
+ipcMain.handle('stop-yapmod-client', (event) => {
+    const contents = yapmodsource(event);
+    return contents.executeJavaScript('globalThis.YapmodClient?.dispose?.();');
+});
+
+ipcMain.handle('fetch-yapmod-release', async (event) => {
+    yapmodsource(event);
+    const headers = { 'User-Agent': 'YapPlusPlus-App', Accept: 'application/vnd.github+json' };
+    const releaseResponse = await fetch('https://api.github.com/repos/yapmod/client/releases/latest', {
+        headers,
+        signal: AbortSignal.timeout(20000)
+    });
+    if (!releaseResponse.ok) throw new Error(`GitHub release lookup failed (${releaseResponse.status}).`);
+    const release = await releaseResponse.json();
+    const asset = release && Array.isArray(release.assets)
+        ? release.assets.find(item => item && item.name === 'yapmod-client.js')
+        : null;
+    if (typeof release.tag_name !== 'string' || !release.tag_name || !asset
+        || !Number.isInteger(asset.size) || asset.size <= 0 || asset.size > 2 * 1024 * 1024) {
+        throw new Error('The latest GitHub release does not contain a valid Yapmod Client bundle.');
+    }
+    const downloadurl = parseurl(asset.browser_download_url);
+    const expectedpath = `/yapmod/client/releases/download/${encodeURIComponent(release.tag_name)}/yapmod-client.js`;
+    if (!downloadurl || downloadurl.protocol !== 'https:' || downloadurl.hostname !== 'github.com'
+        || downloadurl.pathname !== expectedpath || downloadurl.search || downloadurl.hash
+        || downloadurl.username || downloadurl.password) {
+        throw new Error('The latest release bundle URL is invalid.');
+    }
+    const assetResponse = await fetch(downloadurl.href, {
+        headers: { 'User-Agent': 'YapPlusPlus-App', Accept: 'application/octet-stream' },
+        signal: AbortSignal.timeout(20000)
+    });
+    if (!assetResponse.ok) throw new Error(`GitHub bundle download failed (${assetResponse.status}).`);
+    const finalurl = parseurl(assetResponse.url);
+    if (!finalurl || !['github.com', 'release-assets.githubusercontent.com', 'objects.githubusercontent.com'].includes(finalurl.hostname)) {
+        throw new Error('GitHub redirected the bundle download to an unexpected host.');
+    }
+    const bundle = Buffer.from(await assetResponse.arrayBuffer());
+    if (bundle.length !== asset.size || bundle.length > 2 * 1024 * 1024) {
+        throw new Error('The downloaded Yapmod Client bundle has an invalid size.');
+    }
+    if (asset.digest) {
+        const digest = 'sha256:' + crypto.createHash('sha256').update(bundle).digest('hex');
+        if (asset.digest !== digest) throw new Error('The Yapmod Client release checksum did not match.');
+    }
+    const source = new TextDecoder('utf-8', { fatal: true }).decode(bundle);
+    if (!source.trim()) throw new Error('The downloaded Yapmod Client bundle is empty.');
+    return { tag: release.tag_name, filename: asset.name, source };
+});
+
 function yaplayfields(value, fields) {
     return value && typeof value === 'object' && !Array.isArray(value)
         && Object.keys(value).every(key => fields.includes(key));
