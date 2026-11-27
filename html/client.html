@@ -20,6 +20,7 @@
         webview.id = 'yapper-view';
         webview.setAttribute('partition', 'persist:yapper');
         webview.setAttribute('allowpopups', '');
+        webview.setAttribute('webpreferences', 'backgroundThrottling=no');
         if (window.electronAPI && window.electronAPI.getPreloadPath) {
             const guestpreload = preloadurl(window.electronAPI.getPreloadPath());
             if (guestpreload) webview.setAttribute('preload', guestpreload);
