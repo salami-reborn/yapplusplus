@@ -8,8 +8,6 @@
 </head>
 <body>
     <script>
-        // Turn the preload path into a file: URL. Windows paths look like
-        // "C:\Users\...\preload.js" and need to become "file:///C:/Users/...".
         function preloadurl(value) {
             if (!value) return '';
             if (/^file:/i.test(value)) return value;
@@ -18,9 +16,6 @@
             return 'file://' + encodeURI(normalized).replace(/#/g, '%23').replace(/\?/g, '%3F');
         }
 
-        // The preload has to be set before the webview starts loading, otherwise
-        // Electron ignores it and the guest page never gets window.electronAPI.
-        // Create the element detached, configure it, then attach it.
         const webview = document.createElement('webview');
         webview.id = 'yapper-view';
         webview.setAttribute('partition', 'persist:yapper');

@@ -63,7 +63,6 @@
         let source = null;
         try { source = localStorage.getItem(bundlekey); } catch (e) {}
         if (!source || !source.trim()) {
-          // Enabling from the plugin list (or a fresh profile) has no bundle yet.
           if (token !== runtoken) return;
           setstatus('Fetching the latest GitHub release...');
           source = await fetchbundle();
