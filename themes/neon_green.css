@@ -1,0 +1,81 @@
+/* #050505, #0a0a0a, #00ff41, #33ff66 */
+.app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
+  background-color: #050505 !important;
+}
+
+nav.rail, aside.sidebar, .side-panel, .user-bar {
+  background-color: #0a0a0a !important;
+  border-right: 2px solid #00ff41 !important;
+}
+
+.main-head {
+  border-bottom: 2px solid #00ff41 !important;
+}
+
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  color: #ccffcc !important;
+}
+
+a, .mention, .sidebar-channel.active, .channel-item.active {
+  color: #00ff41 !important;
+  text-shadow: 0 0 6px rgba(0, 255, 65, 0.5) !important;
+}
+
+.channel-item.active {
+  background-color: #00ff41 !important;
+  color: #050505 !important;
+  border-left: 4px solid #33ff66 !important;
+  border-radius: 0 !important;
+}
+
+.channel-item.active * {
+  color: #050505 !important;
+}
+
+.rail-item {
+  border-radius: 0 !important;
+  border: 2px solid transparent !important;
+}
+
+.rail-item.active {
+  background-color: #33ff66 !important;
+  border: 2px solid #00ff41 !important;
+  box-shadow: 0 0 10px rgba(0, 255, 65, 0.5) !important;
+}
+
+.msg {
+  border-radius: 3px !important;
+  border-left: 3px solid transparent !important;
+}
+
+.msg:hover {
+  background-color: #0a0a0a !important;
+  border-left: 3px solid #00ff41 !important;
+  box-shadow: 0 0 8px rgba(0, 255, 65, 0.1) !important;
+}
+
+.msg.mentioned {
+  background-color: rgba(0, 255, 65, 0.15) !important;
+  border-left: 3px solid #33ff66 !important;
+}
+
+.composer-box {
+  background-color: #0a0a0a !important;
+  border: 2px solid #00ff41 !important;
+  border-radius: 0 !important;
+  box-shadow: 0 0 12px rgba(0, 255, 65, 0.2) !important;
+}
+
+.composer-box textarea {
+  color: #ccffcc !important;
+}
+
+.composer-box:focus-within {
+  border-color: #33ff66 !important;
+  box-shadow: 0 0 16px rgba(0, 255, 65, 0.3) !important;
+}
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #050505; }
+::-webkit-scrollbar-thumb { background: #0a0a0a; border: 2px solid #00ff41; border-radius: 0; }
+::-webkit-scrollbar-thumb:hover { background: #00ff41; }

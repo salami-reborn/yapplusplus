@@ -1,7 +1,36 @@
 // GITHUB WORKFLOWS BOT, FUCK YOUUUUUU. ACTUALLY LIKE GENUINELY FUCK YOU.
 (function() {
     const A = window.YapPlusAssets || {};
-    
+
+    if (!window.__ypBadgeTooltipSetup) {
+        window.__ypBadgeTooltipSetup = true;
+        const tip = document.createElement('div');
+        tip.id = 'yp-badge-tooltip';
+        tip.style.cssText = 'position:fixed;pointer-events:none;z-index:999999;background:#1e1f22;border:1px solid #333;color:#fff;padding:6px 10px;border-radius:6px;font-size:12px;max-width:240px;white-space:normal;opacity:0;transition:opacity 0.15s;';
+        document.body.appendChild(tip);
+        let tt = null;
+        document.addEventListener('mouseover', (e) => {
+            const b = e.target.closest('.yp-staff-badge, .yp-helper-badge, [class*="yp-ftx-"]');
+            if (b && b.closest('.pv2, .profile-card')) {
+                const d = b.getAttribute('data-desc');
+                if (d) {
+                    clearTimeout(tt);
+                    tip.textContent = d;
+                    const r = b.getBoundingClientRect();
+                    tip.style.left = (r.left + r.width / 2 - tip.offsetWidth / 2) + 'px';
+                    tip.style.top = (r.top - 42) + 'px';
+                    tip.style.opacity = '1';
+                }
+            }
+        });
+        document.addEventListener('mouseout', (e) => {
+            const b = e.target.closest('.yp-staff-badge, .yp-helper-badge, [class*="yp-ftx-"]');
+            if (b && b.closest('.pv2, .profile-card')) {
+                tt = setTimeout(() => { tip.style.opacity = '0'; }, 120);
+            }
+        });
+    }
+
     function fanumtaxxbadge(u, hover, src) {
         if (!u || !src) return;
         const id = u.toLowerCase(), B = window.__ftx = window.__ftx || {
@@ -86,7 +115,7 @@
                             }
                             keep.add(el);
                             if (el.getAttribute('src') !== w.src) el.src = w.src;
-                            if (el.title !== w.title) el.title = w.title;
+                            if (el.getAttribute('data-desc') !== w.title) { el.setAttribute('data-desc', w.title); el.removeAttribute('title'); }
                         });
                         row.querySelectorAll(':scope > .yp-staff-badge, :scope > .yp-helper-badge, :scope > [class*="yp-ftx-"]').forEach(el => {
                             if (!keep.has(el)) el.remove();
@@ -115,9 +144,9 @@
         id: 'staffbadge',
         name: 'Staff Badge',
         description: 'A badge for yap++ contributors/staff/helpers/eventwinners.',
-        BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe,', '77ae11af', '1720334f', 'c5ccf056-9c36-4367-9d27-69c92424c7fe', 'c5ccf056', 'da302abc', 'baebe68c-8944-4738-aa41-40d67a018c62', 'c00c8a06-ec79-42ca-9b79-bfa3139a0d25', 'e96e12b4-2bac-4d4e-8914-cdb7404abf9d', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', 'f1e42d68-12a0-43b0-956d-ed5b9f8fb9f2', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', '9c2208e6-f8b4-44db-ac91-89a012ffb0a8', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6'],
+        BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe,', '77ae11af', '1720334f', 'c5ccf056-9c36-4367-9d27-69c92424c7fe', 'c5ccf056', 'da302abc', 'baebe68c-8944-4738-aa41-40d67a018c62', 'c00c8a06-ec79-42ca-9b79-bfa3139a0d25', 'e96e12b4-2bac-4d4e-8914-cdb7404abf9d', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', 'f1e42d68-12a0-43b0-956d-ed5b9f8fb9f2', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', '9c2208e6-f8b4-44db-ac91-89a012ffb0a8', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6', 'bf476a2f-eb97-4c44-bba2-5bad8e2186d4', '6dcac643-07bc-4908-972e-30e227554333'],
         BADGE_SRC: A.staff || '',
-        HELPER_BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '1b2d9bda-4afc-466c-b661-3399b0ee7f7b', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '48eb0fcb-21ca-4171-899c-ca1ca29d9ee4', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', 'da302abc-7fa0-4f7a-9f3f-536d6eadfc71', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6'],
+        HELPER_BADGED: ['c5ccf056-9c36-4367-9d27-69c92424c7fe', '1b2d9bda-4afc-466c-b661-3399b0ee7f7b', '3d32bc29-8de7-4085-a8c9-22b3acf285f1', '48eb0fcb-21ca-4171-899c-ca1ca29d9ee4', '2401d1d0-467c-40a8-888d-9f7526414690', 'e2647b1f-e7fc-4c68-a630-00cfa1439d49', 'da302abc-7fa0-4f7a-9f3f-536d6eadfc71', '6d6d3554-f789-4f81-8aea-baed4af5dc89', '13aa6b8b-f756-4dcb-b791-f6086ad1806e', '165de22a-53d6-43ed-8cb2-502f915f98e9', '4426cda0-4337-41a6-9fe9-ef95933b3b2c', '398f5f6b-fb76-4975-b268-e2c67b7ac9ab', '47e02943-a5ed-437d-8edb-241c7d85f2c6', 'bf476a2f-eb97-4c44-bba2-5bad8e2186d4', '6dcac643-07bc-4908-972e-30e227554333'],
         HELPER_BADGE_SRC: A.helper || '',
         msgAuthor: new Map(),
         unresolvable: new Set(),
@@ -191,6 +220,8 @@
             fanumtaxxbadge('d70e83db-e45d-47be-9f1b-0ca8ea1b42d7', `Certified chud basement dweller`, A.chud || '');
             fanumtaxxbadge('c5ccf056-9c36-4367-9d27-69c92424c7fe', `1/2 Owners/Operators of yap!!`, A.yppIcon || '');
             fanumtaxxbadge('da302abc-7fa0-4f7a-9f3f-536d6eadfc71', `1/2 Owners/Operators of yap!!`, A.yppIcon || '');
+            fanumtaxxbadge('bf476a2f-eb97-4c44-bba2-5bad8e2186d4', `Lead Dev of Yap++! Also made yapmod!`, A.yppIcon || '');
+            fanumtaxxbadge('6dcac643-07bc-4908-972e-30e227554333', `♡ Nyu`, A.gothheart || '');
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('58c8e188-2370-449c-aaa7-79e8c80888cd', `Welcomes people!`, A.yppIcon || '');
             fanumtaxxbadge('13aa6b8b-f756-4dcb-b791-f6086ad1806e', `My alt. If this is online then I'm either testing a plugin/idk`, A.yppIcon || '');
@@ -351,7 +382,6 @@
             vertical-align: -3px;
             align-self: center;
             object-fit: cover;
-            pointer-events: none;
             user-select: none;
           }
           .yp-staff-badge { box-shadow: 0 0 5px rgba(255, 0, 255, 0.99); }

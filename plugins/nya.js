@@ -2,7 +2,7 @@
   const suffixes = [' nya~', ' :3', ' uwu', ' >w<', ' *blushes*'];
   const femboyoptions = {
     id: 'femboyoptions',
-    name: 'Femboy Enhancements',
+    name: 'Meowy',
     description: `Nya~, :3, uwu, >w<`,
     start() {
       if (window.PluginHost && window.PluginHost.addFetchTransformer) {

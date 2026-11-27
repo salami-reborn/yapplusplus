@@ -14,7 +14,7 @@ const charactercounter = {
   makeel() {
     const el = document.createElement('div');
     el.id = 'yapplus-charcounter';
-    el.style.cssText = 'position:fixed;z-index:2147483000;pointer-events:none;font-size:12px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#23a55a;text-shadow:0 1px 2px rgba(0,0,0,.6);display:none;';
+    el.style.cssText = 'position:fixed;z-index:50;pointer-events:none;font-size:12px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:#23a55a;text-shadow:0 1px 2px rgba(0,0,0,.6);display:none;right:40px;bottom:10px;';
     document.body.appendChild(el);
     return el;
   },
@@ -31,8 +31,11 @@ const charactercounter = {
       this.el.style.display = 'none';
       return;
     }
-    const rect = box.getBoundingClientRect();
-    if (rect.width === 0 && rect.height === 0) {
+    if (document.getElementById('yapplus-panel') ||
+        document.getElementById('yapplus-themes-panel') ||
+        document.getElementById('yapplus-settings-panel') ||
+        document.getElementById('yapplus-about-panel') ||
+        document.getElementById('yapplus-custom-plugins-panel')) {
       this.el.style.display = 'none';
       return;
     }
@@ -43,6 +46,7 @@ const charactercounter = {
       this.last = n;
     }
     this.el.style.display = 'block';
+    const rect = box.getBoundingClientRect();
     this.el.style.right = Math.max(0, window.innerWidth - rect.right) + 'px';
     this.el.style.bottom = Math.max(0, window.innerHeight - rect.top + 15) + 'px';
   },

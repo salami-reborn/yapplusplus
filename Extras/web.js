@@ -5,14 +5,18 @@
   const repo = 'yapplusplus';
   const branch = 'main';
   const rawbase = 'https://raw.githubusercontent.com/' + owner + '/' + repo + '/' + branch + '/';
-  const apibase = 'https://api.github.com/repos/' + owner + '/' + repo + '/';
   const cachekey = 'yapplus.webcache';
   const aliases = {
     staff: 'Staffcontrib.png',
+    helper: 'Helper.png',
+    vim: 'Vim.png',
     potato: 'Cutepotato.png',
     whitebox: 'whiteboxbadgeidkwhy.png',
     sigma: 'Hefeelsverysigma.png',
-    chud: 'CERTIFIEDCHUD.png'
+    chud: 'CERTIFIEDCHUD.png',
+    yppIcon: 'yppIcon.png',
+    yapjsbadge: 'yapjsbadge.png',
+    gothheart: 'blackheart.png'
   };
   const mimes = {
     png: 'image/png',
@@ -24,20 +28,45 @@
     ico: 'image/x-icon'
   };
 
-
-
-
-
   const assetpattern = new RegExp('^assets/[^/]+\\.(' + Object.keys(mimes).join('|') + ')$', 'i');
-  const store = window.__yapplusstore || (window.__yapplusstore = { text: {}, assets: {}, tree: null, etag: '' });
+  const store = window.__yapplusstore || (window.__yapplusstore = { text: {}, assets: {}, manifest: {}, etag: '' });
   const filecache = {};
   let injected = [];
   let madeelectron = false;
-
-
-
-
-
+  const FALLBACK_PLUGINS = [
+    'plugins/0core.js', 'plugins/1menu.js', 'plugins/nya.js',
+    'plugins/permissionviewer.js', 'plugins/reverseimagesearch.js',
+    'plugins/emojimarkdowncopy.js', 'plugins/quickmention.js',
+    'plugins/custombackground.js', 'plugins/messagelogger.js',
+    'plugins/draftsave.js', 'plugins/badges.js', 'plugins/developervariables.js',
+    'plugins/memberamount.js', 'plugins/Localnicknames.js', 'plugins/yaplay.js'
+  ];
+  const FALLBACK_THEMES = [
+    'themes/AnticBlue.css', 'themes/Stuff.css', 'themes/amoled.css',
+    'themes/adhd_muted.css', 'themes/bamboo.css',
+    'themes/catppuccin_animated.css', 'themes/catppuccin_frappe.css',
+    'themes/catppuccin_mocha.css', 'themes/catppucin_macchiato.css',
+    'themes/contrast_demon.css', 'themes/cursed.css', 'themes/dirt.css',
+    'themes/disrespect.css', 'themes/dyslexia_friendly.css',
+    'themes/everforest.css', 'themes/eyegasm.css',
+    'themes/futuristic_dark.css', 'themes/futuristic_light.css',
+    'themes/gruvboxdark.css', 'themes/jellyfish.css', 'themes/jungleberry.css',
+    'themes/kanagawa.css', 'themes/lavender.css', 'themes/lemon_light.css',
+    'themes/matrix.css', 'themes/mellow.css', 'themes/monochrome.css',
+    'themes/mrrobot_larp.css', 'themes/nightfly.css',
+    'themes/oxocarbon.css', 'themes/productivityPro.css', 'themes/purple_haze.css',
+    'themes/retro95.css', 'themes/robloxstudio.css', 'themes/rosepine.css',
+    'themes/sad_sky.css', 'themes/simplekawaii.css', 'themes/sonokai.css',
+    'themes/solarized.css', 'themes/squircly.css', 'themes/tokyodark.css',
+    'themes/tokyonight.css', 'themes/vampire.css', 'themes/victory_oled.css',
+    'themes/whattheactual.css'
+  ];
+  const FALLBACK_ASSETS = [
+    'assets/Staffcontrib.png', 'assets/Helper.png', 'assets/Vim.png',
+    'assets/Cutepotato.png', 'assets/whiteboxbadgeidkwhy.png',
+    'assets/Hefeelsverysigma.png', 'assets/CERTIFIEDCHUD.png',
+    'assets/yppIcon.png', 'assets/yapjsbadge.png'
+  ];
 
   function note(msg, bad) {
     try {
@@ -52,7 +81,6 @@
     } catch (e) {}
   }
 
-
   function readsaved() {
     try {
       return JSON.parse(localStorage.getItem(cachekey) || '{}') || {};
@@ -60,43 +88,38 @@
       return {};
     }
   }
-  function persist(tree) {
-    const live = {};
-    tree.forEach((f) => {
-      if (store.text[f.sha] !== undefined) live[f.sha] = store.text[f.sha];
-    });
+  function persist() {
     try {
-      localStorage.setItem(cachekey, JSON.stringify({ tree, etag: store.etag, text: live }));
+      localStorage.setItem(cachekey, JSON.stringify({
+        text: store.text,
+        assets: store.assets,
+        manifest: store.manifest,
+        etag: store.etag
+      }));
     } catch (e) {}
+  }
+  async function fetchManifest() {
+    try {
+      const r = await fetch(rawbase + 'manifest.json' + '?t=' + Date.now());
+      if (!r.ok) return null;
+      return await r.json();
+    } catch (e) { return null; }
   }
 
   async function gettree() {
-    const url = apibase + 'git/trees/' + branch + '?recursive=1';
-    const variants = store.tree && store.etag ? [{ 'If-None-Match': store.etag }, {}] : [{}];
-    let status = 'network error';
-    for (const extra of variants) {
-      try {
-        const headers = Object.assign({ Accept: 'application/vnd.github+json' }, extra);
-        const r = await fetch(url, { headers });
-        if (r.status === 304 && store.tree) return store.tree;
-        if (r.ok) {
-          const json = await r.json();
-          store.tree = (json.tree || []).filter((f) => f.type === 'blob').map((f) => ({ path: f.path, sha: f.sha }));
-          store.etag = r.headers.get('ETag') || '';
-          return store.tree;
-        }
-        status = r.status;
-      } catch (e) {}
+    const manifest = await fetchManifest();
+    if (manifest && typeof manifest === 'object' && Object.keys(manifest).length > 0) {
+      store.manifest = manifest;
+      return Object.keys(manifest).map((path) => ({ path, sha: manifest[path] || '' }));
     }
-    if (store.tree) return store.tree;
-    throw new Error(status + '. you may be rate limited for now; you can bypass that by using a vpn or a few min, This never happens on the desktop app!');
+    const files = [...FALLBACK_PLUGINS, ...FALLBACK_THEMES, ...FALLBACK_ASSETS];
+    return files.map((path) => ({ path, sha: '' }));
   }
 
   async function fetchfile(entry) {
     const tries = [
       () => fetch(rawbase + entry.path + '?t=' + Date.now()),
       () => fetch(rawbase + entry.path),
-      () => fetch(apibase + 'git/blobs/' + entry.sha, { headers: { Accept: 'application/vnd.github.raw+json' } })
     ];
     let last = 'network error';
     for (const attempt of tries) {
@@ -112,10 +135,12 @@
   }
 
   async function gettext(entry) {
-    if (store.text[entry.sha] !== undefined) return store.text[entry.sha];
+    const key = entry.sha || entry.path;
+    // Cache hit — no network needed at all (bypasses rate limits completely for unchanged files)
+    if (store.text[key] !== undefined) return store.text[key];
     const r = await fetchfile(entry);
     const text = await r.text();
-    store.text[entry.sha] = text;
+    store.text[key] = text;
     return text;
   }
 
@@ -131,14 +156,14 @@
     });
   }
   async function getasset(entry) {
-    if (store.assets[entry.sha]) return store.assets[entry.sha];
+    const key = entry.sha || entry.path;
+    if (store.assets[key]) return store.assets[key];
     const r = await fetchfile(entry);
     const blob = await r.blob();
     const url = await todataurl(new Blob([blob], { type: mimefor(entry.path) }));
-    store.assets[entry.sha] = url;
+    store.assets[key] = url;
     return url;
   }
-
 
   function byname(a, b) {
     const x = a.toLowerCase();
@@ -193,6 +218,52 @@
     }
     window.__yapplusweb = false;
   }
+  async function doUpdate() {
+    const manifest = await fetchManifest();
+    if (!manifest || typeof manifest !== 'object' || Object.keys(manifest).length === 0) {
+      return { success: false, error: 'could not fetch manifest from github' };
+    }
+    const relevant = Object.keys(manifest).filter((p) =>
+      /^(plugins\/[^\/]+\.js|themes\/[^\/]+\.css|assets\/[^/]+\.(png|jpg|jpeg|gif|webp|svg|ico))$/i.test(p)
+    );
+    let updated = 0;
+    const failed = [];
+
+    for (const path of relevant) {
+      const sha = manifest[path] || '';
+      const key = sha || path;
+      const alreadyHas = store.text[key] !== undefined || store.assets[key] !== undefined;
+      if (alreadyHas && store.manifest[path] === sha) continue; // unchanged, skip entirely
+
+      try {
+        if (path.endsWith('.js') || path.endsWith('.css')) {
+          const entry = { path, sha };
+          const text = await gettext(entry);
+          store.text[key] = text;
+          store.manifest[path] = sha;
+          updated++;
+        } else if (assetpattern.test(path)) {
+          const entry = { path, sha };
+          const url = await getasset(entry);
+          store.assets[key] = url;
+          store.manifest[path] = sha;
+          updated++;
+        }
+      } catch (e) {
+        failed.push(path);
+      }
+    }
+    for (const path of Object.keys(store.manifest)) {
+      if (!(path in manifest)) {
+        delete store.manifest[path];
+        const sha = store.manifest[path];
+        if (sha) { delete store.text[sha]; delete store.assets[sha]; }
+      }
+    }
+
+    persist();
+    return { success: true, count: updated, failed };
+  }
 
   try {
     window.__yapplusteardowns = [];
@@ -203,12 +274,17 @@
 
     const saved = readsaved();
     if (!store.tree && saved.tree) {
-      store.tree = saved.tree;
-      store.etag = saved.etag || '';
     }
-    Object.keys(saved.text || {}).forEach((sha) => {
-      if (!(sha in store.text)) store.text[sha] = saved.text[sha];
+    Object.keys(saved.text || {}).forEach((key) => {
+      if (!(key in store.text)) store.text[key] = saved.text[key];
     });
+    Object.keys(saved.assets || {}).forEach((key) => {
+      if (!(key in store.assets)) store.assets[key] = saved.assets[key];
+    });
+    Object.keys(saved.manifest || {}).forEach((key) => {
+      if (!(key in store.manifest)) store.manifest[key] = saved.manifest[key];
+    });
+    if (saved.etag) store.etag = saved.etag;
 
     const tree = await gettree();
     const pluginentries = tree.filter((f) => /^plugins\/[^\/]+\.js$/.test(f.path)).sort((a, b) => byname(a.path, b.path));
@@ -257,7 +333,7 @@
 
     const sources = loaded[2].filter((s) => s !== null);
     if (!sources.length) throw new Error('no plugins could be loaded. github may be rate limiting you for a few min.');
-    persist(tree);
+    persist();
 
     Object.keys(aliases).forEach((key) => {
       if (filecache[aliases[key]]) assets[key] = filecache[aliases[key]];
@@ -271,10 +347,7 @@
         getAsset: async (name) => filecache[name] || null,
         getThemes: async () => themes,
         getPreloadPath: () => '',
-        update: async () => ({
-          success: false,
-          error: 'outdated. pls run the script again to use the latest version'
-        }),
+        update: async () => doUpdate(),
         restartApp: () => location.reload(),
         saveCustomPlugin: async () => ({ success: false, error: 'not supported in the web version' }),
         openExternal: async (url) => {

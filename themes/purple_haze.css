@@ -1,3 +1,4 @@
+/* #1a0b2e, #11051e, #3d1c6e, #ff00ff */
 .app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
   background: linear-gradient(180deg, #1a0b2e 0%, #11051e 100%) !important;
 }

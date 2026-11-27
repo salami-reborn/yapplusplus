@@ -41,6 +41,7 @@
                         try {
                             await webview.executeJavaScript(plugincode);
                         } catch (err) {
+                            console.error('[Yap++] plugin load error:', err);
                         }
                     }
                 }, 1500);

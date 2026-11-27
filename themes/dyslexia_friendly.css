@@ -1,0 +1,7 @@
+/* #222329, #222329, #222329, #222329 */
+body, .msg-text, .msg-head, .channel-name, .user-bar-name {
+  line-height: 1.6 !important;
+  letter-spacing: 0.05em !important;
+  word-spacing: 0.1em !important;
+  font-family: 'Lexend', 'Segoe UI', sans-serif !important;
+}

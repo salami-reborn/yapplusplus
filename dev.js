@@ -1,6 +1,3 @@
-// Runs the app in local mode: plugins, themes and assets are read from this
-// repo instead of the userData "yapplus-hot" cache, and badges.js is not
-// re-downloaded from GitHub on startup.
 const { spawn } = require('child_process');
 
 const isWindows = process.platform === 'win32';

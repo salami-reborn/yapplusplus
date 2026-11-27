@@ -2,6 +2,7 @@
   if (window.__yapplusmenuinstalled) return;
   window.__yapplusmenuinstalled = true;
   const navid = 'yapplus-nav-button';
+const navaboutid = 'yapplus-nav-about-button';
   const navsettingsid = 'yapplus-nav-settings-button';
   const navthemesid = 'yapplus-nav-themes-button';
   const navcustomid = 'yapplus-nav-custom-button';
@@ -9,6 +10,7 @@
   const settingspanelid = 'yapplus-plugin-settings-panel';
   const themespanelid = 'yapplus-themes-panel';
   const custompanelid = 'yapplus-custom-plugins-panel';
+const aboutpanelid = 'yapplus-about-panel';
   const devkey = 'yapplus.devmode';
   const customkey = 'yapplus.customplugins';
 
@@ -18,9 +20,9 @@
 
   const style = document.createElement('style');
   style.textContent = `
-    #${navid}, #${navsettingsid}, #${navthemesid}, #${navcustomid} { display: flex; align-items: center; gap: 8px; color: #e27ed3; }
-    #${navid} svg, #${navsettingsid} svg, #${navthemesid} svg, #${navcustomid} svg { width: 18px; height: 18px; }
-    #${panelid}, #${settingspanelid}, #${themespanelid}, #${custompanelid} { padding: 28px 40px; color: #dbdee1; line-height: 1.5; }
+    #${navid}, #${navsettingsid}, #${navthemesid}, #${navcustomid}, #${navaboutid} { display: flex; align-items: center; gap: 8px; color: #e27ed3; }
+    #${navid} svg, #${navsettingsid} svg, #${navthemesid} svg, #${navcustomid} svg, #${navaboutid} svg { width: 18px; height: 18px; }
+    #${panelid}, #${settingspanelid}, #${themespanelid}, #${custompanelid}, #${aboutpanelid} { padding: 28px 40px; color: #dbdee1; line-height: 1.5; }
     #${panelid} h2, #${settingspanelid} h2, #${themespanelid} h2, #${custompanelid} h2 { margin: 0 0 18px; font-size: 20px; color: #fff; }
     #${panelid} a, #${settingspanelid} a, #${themespanelid} a, #${custompanelid} a { color: #e27ed3; text-decoration: none; }
     #${panelid} a:hover, #${settingspanelid} a:hover, #${themespanelid} a:hover, #${custompanelid} a:hover { text-decoration: underline; }
@@ -55,6 +57,8 @@
     .yp-theme-icon { color: #949ba4; display: flex; }
     .yp-theme-icon svg { width: 20px; height: 20px; }
     .yp-theme-name { font-weight: 600; color: #fff; text-transform: capitalize; }
+    .yp-theme-swatches { display: flex; gap: 6px; margin-left: 14px; flex-shrink: 0; }
+    .yp-theme-swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; }
   `;
   document.head.appendChild(style);
 
@@ -127,7 +131,7 @@
     runsource(entry.code, entry.key);
     const added = host.all().filter((plugin) => !before.has(plugin));
     if (!added.length) {
-      throw new Error('no plugin was registered. your code needs to call window.PluginHost.register(...)');
+      throw new Error('no. you need to add pluginhost.register() stupib');
     }
     added.forEach((plugin) => customset.add(plugin));
     customruns.set(entry.key, added);
@@ -166,39 +170,13 @@
     customruns.delete(key);
     writecustom(readcustom().filter((entry) => entry.key !== key));
   }
-  function buildpanel() {
+  function buildpluginspanel() {
     const p = document.createElement('div');
     p.id = panelid;
     p.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-          <h1><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon preview-icon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg> Yap++</h1>
-          <h2>The <b>Cutest</b> Client mod for yapper</h2>
-          <h3 style="color: #ff6b6b;"> <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-certificate preview-icon"><path d="M12 10H6"/><path d="m20.69 15.479 1.29 4.88a.5.5 0 01-.698.591l-1.843-.849a1 1 0 00-.879.001l-1.846.85a.5.5 0 01-.692-.593l1.29-4.88"/><path d="M22 6.675V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h8"/><path d="M6 14h4"/><circle cx="19" cy="13" r="3"/></svg> Version: U0005.5!</h3>
-        </div>
-      </div>
-      <hr><p></p>
       <div class="yp-section">
         <h3>Plugins</h3>
         <div id="yapplus-plugin-list"></div>
-      </div>
-      <hr>
-      <div class="yp-section">
-        <p> </p>
-        <h3>About</h3>
-        <p>Thank you for using Yap++ <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart preview-icon"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg></p>
-        <p>Yapper: <b>salami</b></p>
-        <p>YouTube: <a href="https://www.youtube.com/@sedesuu" target="_blank">@sedesuu</a></p>
-        <p>Discord: <a href="https://discord.com/users/1384802116106719384" target="_blank">.salamidev</a></p>
-        <p>Thank you to our biggest helper and Co-Owner too;</p>
-        <p>I'm ofcourse talking about the goat @TGPG</p>
-        <p> </p>
-        <hr><p></p>
-        <p> </p>
-        <div class="yp-section">
-          <h3>Ethics</h3>
-          <p>Yap++ Does <b>not</b> Save, Distribute, Or maliciously use your login tokens/login information. It's approved by @Antic! <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check preview-icon"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></p>
-        </div>
       </div>
     `;
     const list = p.querySelector('#yapplus-plugin-list');
@@ -228,6 +206,40 @@
     render();
     window.PluginHost.onChange(render);
 
+    return p;
+  }
+
+  function buildaboutpanel() {
+    const p = document.createElement('div');
+    p.id = aboutpanelid;
+    p.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+          <h1><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon preview-icon"><path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg> Yap++</h1>
+          <h2>The <b>Cutest</b> Client mod for yapper</h2>
+          <h3 style="color: #ff6b6b;"> <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-certificate preview-icon"><path d="M12 10H6"/><path d="m20.69 15.479 1.29 4.88a.5.5 0 01-.698.591l-1.843-.849a1 1 0 00-.879.001l-1.846.85a.5.5 0 01-.692-.593l1.29-4.88"/><path d="M22 6.675V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2h8"/><path d="M6 14h4"/><circle cx="19" cy="13" r="3"/></svg> Version: U006!</h3>
+          <a href="https://github.com/salami-reborn/yapplusplus"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-search-code preview-icon"><path d="m13 13.5 2-2.5-2-2.5"/><path d="m21 21-4.3-4.3"/><path d="M9 8.5 7 11l2 2.5"/><circle cx="11" cy="11" r="8"/></svg> View the source code here!</a>
+        </div>
+      </div>
+      <hr><p></p>
+      <div class="yp-section">
+        <p> </p>
+        <h3>About</h3>
+        <p>Thank you for using Yap++ <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-heart preview-icon"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"/></svg></p>
+        <p>Yapper: <b>salami</b></p>
+        <p>YouTube: <a href="https://www.youtube.com/@sedesuu" target="_blank">@sedesuu</a></p>
+        <p>Discord: <a href="https://discord.com/users/1384802116106719384" target="_blank">.salamidev</a></p>
+        <p>Massive shoutout to <b>All</b> of our Devs and Contributors too! You can identify them with the pink shield badge.</p>
+        <p> </p>
+        <hr><p></p>
+        <p> </p>
+        <div class="yp-section">
+          <h3>Ethics</h3>
+          <p>Yap++ Does <b>not</b> Save, Distribute, Or maliciously use your login tokens/login information. It's approved by @Antic! <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-check preview-icon"><circle cx="12" cy="12" r="10"/><path d="m16 9-5.5 5.5L8 12"/></svg></p>
+        </div>
+      </div>
+</div>
+    `;
     return p;
   }
   function builddevsection() {
@@ -696,7 +708,23 @@
           <div class="yp-theme-icon">${SVGS.palette}</div>
           <div class="yp-theme-name">${name}</div>
         `;
-        
+
+        const previewMatch = availableThemes[filename].match(/^\s*\/\*\s*([#A-Fa-f0-9,\s]+)\s*\*\/\s*/m);
+        const colors = previewMatch
+          ? previewMatch[1].split(',').map(c => c.trim()).filter(c => /^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/.test(c))
+          : [];
+        if (colors.length) {
+          const swatches = document.createElement('div');
+          swatches.className = 'yp-theme-swatches';
+          colors.slice(0, 4).forEach(color => {
+            const swatch = document.createElement('div');
+            swatch.className = 'yp-theme-swatch';
+            swatch.style.backgroundColor = color;
+            swatches.appendChild(swatch);
+          });
+          info.appendChild(swatches);
+        }
+
         const label = document.createElement('label');
         label.className = 'yp-switch';
         const input = document.createElement('input');
@@ -752,6 +780,21 @@
 
     return p;
   }
+  (async () => {
+    try {
+      if (!window.electronAPI || !window.electronAPI.getThemes) return;
+      const themes = await window.electronAPI.getThemes();
+      const saved = localStorage.getItem('yapplus.activeTheme');
+      if (!saved || !themes[saved]) return;
+      let el = document.getElementById('yapplus-active-theme');
+      if (!el) {
+        el = document.createElement('style');
+        el.id = 'yapplus-active-theme';
+        document.head.appendChild(el);
+      }
+      el.textContent = themes[saved];
+    } catch (e) {}
+  })();
 
   function safebuild(builder, target) {
     try {
@@ -795,16 +838,29 @@
       '<div style="box-sizing:border-box;padding:2px 8px;font-size:11px;font-weight:700;color:#949ba4;opacity:0.8;letter-spacing:0.04em;text-transform:uppercase;user-select:none;">Yap++</div>';
     nav.appendChild(header);
 
+    const aboutbtn = document.createElement('button');
+    aboutbtn.id = navaboutid;
+    aboutbtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cat preview-icon"><path d="M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3-9-7.56c0-1.25.5-2.4 1-3.44 0 0-1.89-6.42-.5-7 1.39-.58 4.72.23 6.5 2.23A9.04 9.04 0 0 1 12 5Z"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/></svg> <span>Yap++</span>';
+    aboutbtn.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      currentMode = 'about';
+      nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      aboutbtn.classList.add('active');
+      main.innerHTML = '';
+      safebuild(buildaboutpanel, main);
+    });
+    nav.appendChild(aboutbtn);
+
     const btn = document.createElement('button');
     btn.id = navid;
-    btn.innerHTML = `${SVGS.plugins} <span>Yap++ Plugins</span>`;
+    btn.innerHTML = `${SVGS.plugins} <span>Plugins</span>`;
     btn.addEventListener('click', (e) => {
       e.preventDefault(); e.stopPropagation();
       currentMode = 'plugins';
       nav.querySelectorAll('button').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       main.innerHTML = '';
-      safebuild(buildpanel, main);
+      safebuild(buildpluginspanel, main);
     });
     nav.appendChild(btn);
 
@@ -823,7 +879,7 @@
 
     const settingsbtn = document.createElement('button');
     settingsbtn.id = navsettingsid;
-    settingsbtn.innerHTML = `${SVGS.settings} <span>Yap++ Settings</span>`;
+    settingsbtn.innerHTML = `${SVGS.settings} <span>Settings</span>`;
     settingsbtn.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -852,10 +908,10 @@
     updatecustomnav();
 
     nav.addEventListener('pointerdown', (e) => {
-      const ours = [header, btn, settingsbtn, themesbtn, custombtn];
+      const ours = [header, aboutbtn, btn, settingsbtn, themesbtn, custombtn];
       if (!ours.some((b) => e.target === b || b.contains(e.target))) {
         currentMode = null;
-        [panelid, settingspanelid, themespanelid, custompanelid].forEach(id => {
+        [panelid, settingspanelid, themespanelid, custompanelid, aboutpanelid].forEach(id => {
           const el = document.getElementById(id);
           if (el && el.parentElement === main) {
             main.removeChild(el);
@@ -866,7 +922,7 @@
 
     const panelSweep = new MutationObserver(() => {
       if (currentMode === null) {
-        [panelid, settingspanelid, themespanelid, custompanelid].forEach(id => {
+        [panelid, settingspanelid, themespanelid, custompanelid, aboutpanelid].forEach(id => {
           const el = document.getElementById(id);
           if (el && el.parentElement === main) {
             main.removeChild(el);

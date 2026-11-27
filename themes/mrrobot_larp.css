@@ -1,3 +1,4 @@
+/* #050505, #000000, #003300, #00ff41 */
 .app, .chat-wrap, .main, .chat, .messages, .messages-inner, .main-head {
   background-color: #050505 !important;
   background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 65, 0.03) 2px, rgba(0, 255, 65, 0.03) 4px) !important;
