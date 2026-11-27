@@ -50,7 +50,7 @@
   const plugin = {
     id: 'yapmod-client',
     name: 'Yapmod Client',
-    description: 'Run the imported Yapmod Client bundle from Yap++ Settings.',
+    description: 'Fetch and run the latest Yapmod Client GitHub release. Its code can access your Yapin page and account.',
     async start() {
       const token = ++runtoken;
       const run = api('runYapmodClient');
