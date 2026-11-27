@@ -7,16 +7,29 @@
     </style>
 </head>
 <body>
-    <webview id="yapper-view" src="https://yapper.website" partition="persist:yapper" allowpopups></webview>
     <script>
-        const webview = document.getElementById('yapper-view');
-        if (window.electronAPI && window.electronAPI.getPreloadPath) {
-            const path = window.electronAPI.getPreloadPath();
-            if (path) {
-                const formattedpath = path.startsWith('/') ? path : '/' + path;
-                webview.setAttribute('preload', `file://${formattedpath}`);
-            }
+        // Turn the preload path into a file: URL. Windows paths look like
+        // "C:\Users\...\preload.js" and need to become "file:///C:/Users/...".
+        function preloadurl(value) {
+            if (!value) return '';
+            if (/^file:/i.test(value)) return value;
+            let normalized = String(value).replace(/\\/g, '/');
+            if (normalized.charAt(0) !== '/') normalized = '/' + normalized;
+            return 'file://' + encodeURI(normalized).replace(/#/g, '%23').replace(/\?/g, '%3F');
         }
+
+        // The preload has to be set before the webview starts loading, otherwise
+        // Electron ignores it and the guest page never gets window.electronAPI.
+        // Create the element detached, configure it, then attach it.
+        const webview = document.createElement('webview');
+        webview.id = 'yapper-view';
+        webview.setAttribute('partition', 'persist:yapper');
+        webview.setAttribute('allowpopups', '');
+        if (window.electronAPI && window.electronAPI.getPreloadPath) {
+            const guestpreload = preloadurl(window.electronAPI.getPreloadPath());
+            if (guestpreload) webview.setAttribute('preload', guestpreload);
+        }
+
         let retrycount = 0;
         webview.addEventListener('did-finish-load', async () => {
             retrycount = 0;
@@ -57,6 +70,9 @@
                 }, 2000);
             }
         });
+
+        webview.setAttribute('src', 'https://yapper.website');
+        document.body.appendChild(webview);
     </script>
 </body>
 </html>

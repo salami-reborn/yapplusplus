@@ -419,10 +419,23 @@ const aboutpanelid = 'yapplus-about-panel';
     window.PluginHost.onChange(syncyapmodswitch);
     function renderyapmodstatus(message, color) {
       const filename = localStorage.getItem(yapmodnamekey);
-      yapmodstatus.textContent = message || (filename ? 'Last fetched: ' + filename : 'Turn on to fetch the latest release.');
-      yapmodstatus.style.color = color || '#949ba4';
+      let saved = null;
+      let savedcolor = null;
+      try {
+        saved = localStorage.getItem('yapplus.yapmod.status');
+        savedcolor = localStorage.getItem('yapplus.yapmod.statuscolor');
+      } catch (e) {}
+      const plugin = findyapmodplugin();
+      const enabled = !!plugin && window.PluginHost.isEnabled(plugin);
+      yapmodstatus.textContent = message || (enabled && saved) || (filename ? 'Last fetched: ' + filename : 'Turn on to fetch the latest release.');
+      yapmodstatus.style.color = color || (enabled && savedcolor ? savedcolor : '#949ba4');
     }
     renderyapmodstatus();
+    window.addEventListener('yapplus-yapmod-status', (event) => {
+      const detail = event && event.detail;
+      if (!detail) return;
+      renderyapmodstatus(detail.message, detail.color);
+    });
     yapmodswitch.addEventListener('change', async () => {
       const plugin = findyapmodplugin();
       if (!plugin) {
