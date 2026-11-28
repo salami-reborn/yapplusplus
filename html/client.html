@@ -25,36 +25,42 @@
             if (guestpreload) webview.setAttribute('preload', guestpreload);
         }
 
-        let retrycount = 0;
-        webview.addEventListener('did-finish-load', async () => {
-            retrycount = 0;
-            try {
-                const assets = {
-                    staff: await window.electronAPI.getAsset('Staffcontrib.png'),
-                    helper: await window.electronAPI.getAsset('Helper.png'),
-                    vim: await window.electronAPI.getAsset('Vim.png'),
-                    potato: await window.electronAPI.getAsset('Cutepotato.png'),
-                    whitebox: await window.electronAPI.getAsset('whiteboxbadgeidkwhy.png'),
-                    sigma: await window.electronAPI.getAsset('Hefeelsverysigma.png'),
-                    chud: await window.electronAPI.getAsset('CERTIFIEDCHUD.png'),
-                    yppIcon: await window.electronAPI.getAsset('yppIcon.png'),
-                    yapjsbadge: await window.electronAPI.getAsset('yapjsbadge.png'),
-                    astolfodoodle: await window.electronAPI.getAsset('astolfo_doodle.png'),
-                    gothheart: await window.electronAPI.getAsset('blackheart.png')
-                };
-                await webview.executeJavaScript(`window.YapPlusAssets = ${JSON.stringify(assets)};`);
-                setTimeout(async () => {
-                    const plugincode = await window.electronAPI.getPlugins();
-                    if (plugincode && plugincode.trim().length > 0) {
-                        try {
-                            await webview.executeJavaScript(plugincode);
-                        } catch (err) {
-                            console.error('[Yap++] plugin load error:', err);
-                        }
-                    }
-                }, 1500);
+        const assetFiles = {
+            staff: 'Staffcontrib.png',
+            helper: 'Helper.png',
+            vim: 'Vim.png',
+            potato: 'Cutepotato.png',
+            whitebox: 'whiteboxbadgeidkwhy.png',
+            sigma: 'Hefeelsverysigma.png',
+            chud: 'CERTIFIEDCHUD.png',
+            yppIcon: 'yppIcon.png',
+            yapjsbadge: 'yapjsbadge.png',
+            astolfodoodle: 'astolfo_doodle.png',
+            gothheart: 'blackheart.png'
+        };
 
-            } catch (err) {
+        let retrycount = 0;
+        let navigation = 0;
+        webview.addEventListener('did-start-navigation', (event) => {
+            if (event.isMainFrame && !event.isInPlace) navigation++;
+        });
+        webview.addEventListener('did-finish-load', () => { retrycount = 0; });
+        webview.addEventListener('dom-ready', async () => {
+            const documentNavigation = navigation;
+            try {
+                const [assets, plugincode] = await Promise.all([
+                    Promise.all(Object.entries(assetFiles).map(async ([key, file]) => [
+                        key, await window.electronAPI.getAsset(file).catch(() => null)
+                    ])).then(Object.fromEntries),
+                    window.electronAPI.getPlugins()
+                ]);
+                if (documentNavigation === navigation && plugincode && plugincode.trim()) {
+                    await webview.executeJavaScript(
+                        `window.YapPlusAssets = ${JSON.stringify(assets)};\n${plugincode}`
+                    );
+                }
+            } catch (error) {
+                console.error('[Yap++] plugin load error:', error);
             }
         });
         webview.addEventListener('did-fail-load', (event) => {

@@ -877,16 +877,18 @@ const aboutpanelid = 'yapplus-about-panel';
   (async () => {
     try {
       if (!window.electronAPI || !window.electronAPI.getThemes) return;
-      const themes = await window.electronAPI.getThemes();
       const saved = localStorage.getItem('yapplus.activeTheme');
-      if (!saved || !themes[saved]) return;
+      if (!saved) return;
+      const css = await window.electronAPI.getTheme?.(saved).catch(() => undefined);
+      const theme = css === undefined ? (await window.electronAPI.getThemes())[saved] : css;
+      if (!theme) return;
       let el = document.getElementById('yapplus-active-theme');
       if (!el) {
         el = document.createElement('style');
         el.id = 'yapplus-active-theme';
         document.head.appendChild(el);
       }
-      el.textContent = themes[saved];
+      el.textContent = theme;
     } catch (e) {}
   })();
 

@@ -12,56 +12,42 @@ const passprotocols = ['blob:', 'about:', 'devtools:'];
 
 
 async function updatebadges() {
-    if (!hotdir || localmode) return;
-
-    const headers = {
-        'User-Agent': 'YapPlusPlus-App',
-        'Cache-Control': 'no-cache'
-    };
+    const headers = { 'User-Agent': 'YapPlusPlus-App' };
     const baseurl = 'https://raw.githubusercontent.com/salami-reborn/yapplusplus/main/';
+    const signal = AbortSignal.timeout(10000);
 
     try {
-        const pluginurl = `${baseurl}plugins/badges.js?t=${Date.now()}`;
-        const pluginres = await fetch(pluginurl, { headers, cache: 'no-store' });
+        const response = await fetch('https://api.github.com/repos/salami-reborn/yapplusplus/git/trees/main?recursive=1', { headers, signal });
+        if (!response.ok) return;
+        const { tree, truncated } = await response.json();
+        if (truncated || !Array.isArray(tree)) return;
 
-        if (pluginres.ok) {
-            const remotebuffer = Buffer.from(await pluginres.arrayBuffer());
-            const localpath = path.join(hotdir, 'plugins', 'badges.js');
+        const files = tree.filter(file => file.type === 'blob' &&
+            (file.path.startsWith('assets/') || file.path === 'plugins/badges.js'));
 
-            if (!fs.existsSync(path.dirname(localpath))) {
-                fs.mkdirSync(path.dirname(localpath), { recursive: true });
-            }
+        await Promise.allSettled(files.map(async file => {
+            const destination = path.join(hotdir, file.path);
+            const installed = await fs.promises.readFile(resolve(file.path)).catch(() => null);
+            if (installed && gitblobsha(installed) === file.sha) return;
 
-            fs.writeFileSync(localpath, remotebuffer);
-        } else {
-        }
-    } catch (e) {}
-    try {
-        const apires = await fetch('https://api.github.com/repos/salami-reborn/yapplusplus/git/trees/main?recursive=1', { headers });
-        if (!apires.ok) return;
-        const tree = await apires.json();
-        if (!tree || !tree.tree) return;
-        const assetfiles = tree.tree.filter(f => f.type === 'blob' && f.path.startsWith('assets/'));
-        await Promise.all(assetfiles.map(async (file) => {
+            const url = baseurl + file.path.split('/').map(encodeURIComponent).join('/');
+            const download = await fetch(url, { headers, signal });
+            if (!download.ok) return;
+            const source = Buffer.from(await download.arrayBuffer());
+            if (gitblobsha(source) !== file.sha) return;
+
+            await fs.promises.mkdir(path.dirname(destination), { recursive: true });
+            const temporary = `${destination}.${crypto.randomUUID()}.tmp`;
             try {
-                const asseturl = `${baseurl}${file.path}?t=${Date.now()}`;
-                const assetres = await fetch(asseturl, { headers, cache: 'no-store' });
-                if (!assetres.ok) return;
-                const remotebuffer = Buffer.from(await assetres.arrayBuffer());
-                const localpath = path.join(hotdir, file.path);
-                if (!fs.existsSync(path.dirname(localpath))) {
-                    fs.mkdirSync(path.dirname(localpath), { recursive: true });
-                }
-                if (fs.existsSync(localpath)) {
-                    const localbuffer = fs.readFileSync(localpath);
-                    if (gitblobsha(localbuffer) === gitblobsha(remotebuffer)) {
-                        return;
-                    }
-                }
-                fs.writeFileSync(localpath, remotebuffer);
-            } catch (e) {}
+                await fs.promises.writeFile(temporary, source);
+                await fs.promises.rename(temporary, destination);
+            } finally {
+                await fs.promises.rm(temporary, { force: true });
+            }
         }));
-    } catch (e) {}
+    } catch (error) {
+        console.warn('[Yap++] Badge refresh failed:', error.message);
+    }
 }
 
 function parseurl(url) {
@@ -131,25 +117,24 @@ function getthemedirs() {
     return localmode ? dirs : dirs.reverse();
 }
 
-function getplugincode() {
+async function getplugincode() {
     const dirs = getplugindirs();
     const files = new Map();
-    let combinedcode = '';
     for (const dir of dirs) {
-        if (!fs.existsSync(dir)) continue;
-        fs.readdirSync(dir).forEach(file => {
+        const entries = await fs.promises.readdir(dir).catch(() => []);
+        for (const file of entries) {
             if (file.endsWith('.js') && !files.has(file)) files.set(file, path.join(dir, file));
-        });
+        }
     }
     const names = [...files.keys()].sort((left, right) => {
         if (left === '0core.js') return -1;
         if (right === '0core.js') return 1;
         return left.localeCompare(right);
     });
-    for (const name of names) {
-        try { combinedcode += fs.readFileSync(files.get(name), 'utf-8') + '\n'; } catch (e) {}
-    }
-    return combinedcode;
+    const sources = await Promise.all(names.map(name =>
+        fs.promises.readFile(files.get(name), 'utf8').catch(() => '')
+    ));
+    return sources.join('\n') + '\n';
 }
 
 function getthemecode() {
@@ -424,26 +409,30 @@ app.on('before-quit', () => {
     for (const connection of yaplaysessions.values()) yaplayclose(connection);
     yaplaysessions.clear();
 });
+ipcMain.handle('get-theme', async (_event, name) => {
+    if (typeof name !== 'string' || !/^[^/\\:]+\.css$/.test(name)) return null;
+    for (const directory of getthemedirs()) {
+        const css = await fs.promises.readFile(path.join(directory, name), 'utf8').catch(() => null);
+        if (css !== null) return css;
+    }
+    return null;
+});
 ipcMain.handle('get-themes', () => getthemecode());
-ipcMain.handle('get-asset', (event, assetname) => {
+ipcMain.handle('get-asset', async (_event, assetname) => {
+    if (typeof assetname !== 'string' || !/^[^/\\:]+$/.test(assetname) || ['.', '..'].includes(assetname)) return null;
     const candidates = [
         path.join(appdir, 'assets', assetname),
         hotdir ? path.join(hotdir, 'assets', assetname) : null
     ].filter(Boolean);
     if (!localmode) candidates.reverse();
     for (const assetpath of candidates) {
-        if (fs.existsSync(assetpath)) {
-            try {
-                const bitmap = fs.readFileSync(assetpath);
-                const base64 = Buffer.from(bitmap).toString('base64');
-                const ext = path.extname(assetname).toLowerCase();
-                let mime = 'image/png';
-                if (ext === '.jpg' || ext === '.jpeg') mime = 'image/jpeg';
-                if (ext === '.gif') mime = 'image/gif';
-                if (ext === '.webp') mime = 'image/webp';
-                return `data:${mime};base64,${base64}`;
-            } catch (e) {}
-        }
+        const bitmap = await fs.promises.readFile(assetpath).catch(() => null);
+        if (!bitmap) continue;
+        const ext = path.extname(assetname).toLowerCase().slice(1);
+        let mime = 'png';
+        if (ext === 'jpg' || ext === 'jpeg') mime = 'jpeg';
+        if (ext === 'gif' || ext === 'webp') mime = ext;
+        return `data:image/${mime};base64,${bitmap.toString('base64')}`;
     }
     return null;
 });
@@ -555,16 +544,23 @@ async function update() { // contribution by @duckycore12
     }
 }
 
-ipcMain.handle('update', async () => update());
+let pendingUpdate = Promise.resolve();
+
+function queueUpdate(task) {
+    const result = pendingUpdate.then(task);
+    pendingUpdate = result.catch(() => {});
+    return result;
+}
+
+ipcMain.handle('update', () => queueUpdate(update));
 
 ipcMain.handle('restart-app', () => {
     app.relaunch();
     app.exit(0);
 });
 
-app.whenReady().then(async () => {
+app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
-    await updatebadges();
 
     const pendingPicks = new Map();
 
@@ -668,6 +664,14 @@ app.whenReady().then(async () => {
             additionalArguments: [`--preload-path=${preloadpath}`]
         }
     });
+
+    if (hotdir && !localmode) {
+        mainwindow.webContents.once('did-attach-webview', (_event, guest) => {
+            guest.once('did-finish-load', () => {
+                void queueUpdate(updatebadges);
+            });
+        });
+    }
 
     mainwindow.loadFile(clientpath);
 });
