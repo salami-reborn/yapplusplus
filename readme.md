@@ -29,6 +29,22 @@ I'm also looking for ways to make a team with Antic; but antic hates me..
 > Windows smartscreen will display: "Are you sure you want to run this app?", This is because yap++ is not signed with a 300 dollar certificate. I will plan on signing it with other certificate options to minimize this. If you are on windows 11 25H2 then you can toggle SMART-APP-CONTROL in settings to be able to run yap++ if SAC won't let you.
 
 ## Download Yap++ in [Releases](https://github.com/salami-reborn/yapplusplus/releases)
+
+## Publishing a release
+
+In GitHub, open **Actions → Release desktop apps → Run workflow**. Select the branch
+to release and enter a new Git tag such as `U007` or `v1.2.3`. You can also set a
+release title or mark the release as a prerelease.
+
+The optional app version sets the version embedded in all packages. It uses three
+numeric components such as `1.2.3`. If left blank, a numeric tag supplies the app
+version. Other tags use the version in `package.json`. The version is applied during
+the build, and the tag points to the selected source commit.
+
+GitHub publishes the release after all builds succeed. It includes macOS ZIPs
+for Apple Silicon and Intel, a Linux x64 AppImage, and a Windows x64 installer.
+The macOS builds are not notarized, and the Windows installer is unsigned.
+
 ## Contributing
 
 Contributions are always welcome!
