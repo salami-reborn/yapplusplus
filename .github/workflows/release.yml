@@ -133,6 +133,12 @@ jobs:
           fi
           mkdir release
           cp "$asset" "release/YapPlusPlus-$BUILD_PLATFORM-$BUILD_ARCH.$EXTENSION"
+      - name: Check the Linux AppImage and desktop icon
+        if: runner.os == 'Linux'
+        run: |
+          ./release/YapPlusPlus-linux-x64.AppImage --appimage-extract >/dev/null
+          test "$(ELECTRON_RUN_AS_NODE=1 ./squashfs-root/yapplusplus -p 'process.arch')" = x64
+          cmp assets/yppIcon.png squashfs-root/yapplusplus.png
       - uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.platform }}-${{ matrix.arch }}
