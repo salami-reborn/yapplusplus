@@ -1,6 +1,7 @@
 // GITHUB WORKFLOWS BOT, FUCK YOUUUUUU. ACTUALLY LIKE GENUINELY FUCK YOU.
 (function() {
     const A = window.YapPlusAssets || {};
+    const recentMessageLimit = 4000;
 
     if (!window.__ypBadgeTooltipSetup) {
         window.__ypBadgeTooltipSetup = true;
@@ -169,7 +170,10 @@
         },
 
         remember(msgId, authorId) {
-            if (msgId && authorId) this.msgAuthor.set(msgId, String(authorId).toLowerCase());
+            if (!msgId || !authorId) return;
+            this.msgAuthor.delete(msgId);
+            this.msgAuthor.set(msgId, String(authorId).toLowerCase());
+            this.unresolvable.delete(msgId);
         },
 
         sniffToken(input, init) {
@@ -393,7 +397,8 @@
         paint() {
             this.injectCss();
             let needsAuthorLookup = false;
-            document.querySelectorAll('.msg[data-message-id]').forEach(el => {
+            const messages = document.querySelectorAll('.msg[data-message-id]');
+            messages.forEach(el => {
                 const name = el.querySelector('.msg-head .msg-author');
                 if (!name) return;
                 const mid = el.getAttribute('data-message-id');
@@ -447,6 +452,17 @@
                     helperEl.remove();
                 }
             });
+            const caches = [this.msgAuthor, this.unresolvable].filter(cache => cache.size > recentMessageLimit);
+            if (caches.length) {
+                const visible = new Set(Array.from(messages, el => el.getAttribute('data-message-id')));
+                for (const cache of caches) {
+                    const limit = recentMessageLimit + visible.size;
+                    for (const id of cache.keys()) {
+                        if (cache.size <= limit) break;
+                        if (!visible.has(id)) cache.delete(id);
+                    }
+                }
+            }
             window.__ftx?.p();
             if (needsAuthorLookup) this.scheduleHeal();
         },

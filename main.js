@@ -418,7 +418,7 @@ ipcMain.handle('get-theme', async (_event, name) => {
     return null;
 });
 ipcMain.handle('get-themes', () => getthemecode());
-ipcMain.handle('get-asset', async (_event, assetname) => {
+async function getasset(assetname) {
     if (typeof assetname !== 'string' || !/^[^/\\:]+$/.test(assetname) || ['.', '..'].includes(assetname)) return null;
     const candidates = [
         path.join(appdir, 'assets', assetname),
@@ -435,6 +435,18 @@ ipcMain.handle('get-asset', async (_event, assetname) => {
         return `data:image/${mime};base64,${bitmap.toString('base64')}`;
     }
     return null;
+}
+
+ipcMain.handle('get-asset', (_event, assetname) => getasset(assetname));
+ipcMain.handle('get-startup-code', async (event, assetFiles) => {
+    if (event.sender.getType() !== 'window' || !Array.isArray(assetFiles) || assetFiles.length > 16) {
+        return '';
+    }
+    const [assets, plugins] = await Promise.all([
+        Promise.all(assetFiles.map(async ([key, filename]) => [key, await getasset(filename)])),
+        getplugincode()
+    ]);
+    return plugins.trim() ? `window.YapPlusAssets = ${JSON.stringify(Object.fromEntries(assets))};\n${plugins}` : '';
 });
 
 ipcMain.handle('save-custom-plugin', async (event, filename, code) => {

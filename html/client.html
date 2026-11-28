@@ -39,6 +39,28 @@
             gothheart: 'blackheart.png'
         };
 
+        async function loadStartupCode() {
+            const api = window.electronAPI;
+            const entries = Object.entries(assetFiles);
+            if (api.getStartupCode) {
+                try {
+                    return await api.getStartupCode(entries);
+                } catch {
+                    // Older hot copies of main.js still expose the separate handlers.
+                }
+            }
+            const [assets, plugins] = await Promise.all([
+                Promise.all(entries.map(async ([key, file]) => [
+                    key, await api.getAsset(file).catch(() => null)
+                ])).then(Object.fromEntries),
+                api.getPlugins()
+            ]);
+            return plugins?.trim() ? `window.YapPlusAssets = ${JSON.stringify(assets)};\n${plugins}` : '';
+        }
+
+        // Prepare the local code while Yapin loads. Consume the snapshot once so
+        // subsequent reloads pick up changes to plugins and assets.
+        let initialStartupCode = loadStartupCode().catch(() => null);
         let retrycount = 0;
         let navigation = 0;
         webview.addEventListener('did-start-navigation', (event) => {
@@ -48,31 +70,26 @@
         webview.addEventListener('dom-ready', async () => {
             const documentNavigation = navigation;
             try {
-                const [assets, plugincode] = await Promise.all([
-                    Promise.all(Object.entries(assetFiles).map(async ([key, file]) => [
-                        key, await window.electronAPI.getAsset(file).catch(() => null)
-                    ])).then(Object.fromEntries),
-                    window.electronAPI.getPlugins()
-                ]);
-                if (documentNavigation === navigation && plugincode && plugincode.trim()) {
-                    await webview.executeJavaScript(
-                        `window.YapPlusAssets = ${JSON.stringify(assets)};\n${plugincode}`
-                    );
+                const pending = initialStartupCode;
+                initialStartupCode = null;
+                const code = (await pending) ?? await loadStartupCode();
+                if (documentNavigation === navigation && code) {
+                    await webview.executeJavaScript(code);
                 }
             } catch (error) {
                 console.error('[Yap++] plugin load error:', error);
             }
         });
         webview.addEventListener('did-fail-load', (event) => {
-            if (event.isMainFrame && retrycount < 3) {
-                retrycount++;
-                setTimeout(() => {
-                    webview.reload();
-                }, 2000);
-            }
+            if (!event.isMainFrame || event.errorCode === -3 || retrycount >= 3) return;
+            retrycount++;
+            const failedNavigation = navigation;
+            setTimeout(() => {
+                if (failedNavigation === navigation && retrycount > 0) webview.reload();
+            }, 2000);
         });
 
-        webview.setAttribute('src', 'https://yapper.website');
+        webview.setAttribute('src', 'https://www.yapper.website/');
         document.body.appendChild(webview);
     </script>
 </body>
