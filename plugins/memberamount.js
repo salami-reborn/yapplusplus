@@ -5,6 +5,7 @@
   var base_url = 'https://dnfkuqzddwvtdojzgmdm.supabase.co';
   var cache_ms = 30000;
   var page_size = 1000;
+  var server_cache_limit = 32;
   var member_selectors = ['.side-panel-body', '.members-panel', '.member-list', '.chat-members', '.members-sidebar'];
   var row_selectors = ['.pick-row', '.member-row', '.member', '[data-member-id]'];
 
@@ -58,54 +59,38 @@
     return m ? m[1] : null;
   }
 
-  async function fetch_all_rows(path) {
-    var token = get_token();
-    if (!token) throw new Error('no token');
-
-    var all_rows = [];
+  async function fetch_user_ids(path, token) {
+    var ids = new Set();
     var offset = 0;
     var exact_total = null;
 
     while (true) {
-      var separator = path.indexOf('?') === -1 ? '?' : '&';
-      var url = base_url + path + separator +
-        'limit=' + page_size + '&offset=' + offset;
-
-      var res = await fetch(url, {
-        headers: {
-          apikey: get_anon(),
-          Authorization: 'Bearer ' + token,
-          Prefer: 'count=exact'
-        }
-      });
-
+      var headers = {
+        apikey: get_anon(),
+        Authorization: 'Bearer ' + token
+      };
+      if (offset === 0) headers.Prefer = 'count=exact';
+      var res = await fetch(base_url + path + '&limit=' + page_size + '&offset=' + offset, { headers });
       if (!res.ok) throw new Error('HTTP ' + res.status);
 
-      var content_range = res.headers && res.headers.get
-        ? res.headers.get('content-range')
-        : null;
-
-      if (content_range) {
-        var match = /\/(\d+|\*)$/.exec(content_range.trim());
-        if (match && match[1] !== '*') {
-          var parsed_total = Number(match[1]);
-          if (Number.isFinite(parsed_total)) exact_total = parsed_total;
-        }
+      if (offset === 0) {
+        var range = res.headers.get('content-range');
+        var match = range && /\/(\d+)$/.exec(range.trim());
+        if (match) exact_total = Number(match[1]);
       }
 
       var page = await res.json();
       if (!Array.isArray(page)) throw new Error('unexpected response');
-
       if (page.length === 0) break;
 
-      all_rows.push.apply(all_rows, page);
+      for (var row of page) {
+        if (row && row.user_id != null) ids.add(String(row.user_id));
+      }
       offset += page.length;
-
-      // If the server supplies the exact count, stop as soon as every row is fetched.
       if (exact_total !== null && offset >= exact_total) break;
     }
 
-    return all_rows;
+    return ids;
   }
 
   function find_member_container() {
@@ -138,80 +123,65 @@
     css_el: null,
     observer: null,
     timer: null,
-    cache: new Map(),
-    inflight: new Map(),
+    refresh_frame: null,
+    auth_cache: null,
     logged_no_container: false,
 
-    async get_counts(server_id) {
-      var cached = this.cache.get(server_id);
-      if (cached && Date.now() - cached.at < cache_ms) return cached;
+    get_online_ids(cache) {
+      if (cache.online && Date.now() < cache.online.expires) return cache.online.promise;
 
-      var pending = this.inflight.get(server_id);
+      var snapshot = { expires: Infinity };
+      snapshot.promise = fetch_user_ids('/rest/v1/who_online?select=user_id&order=user_id.asc', cache.token)
+        .catch(() => null)
+        .finally(() => { snapshot.expires = Date.now() + cache_ms; });
+      cache.online = snapshot;
+      return snapshot.promise;
+    },
+
+    async get_counts(server_id) {
+      var token = get_token();
+      if (this.auth_cache?.token !== token) {
+        this.auth_cache = token ? { token: token, counts: new Map(), inflight: new Map(), online: null } : null;
+      }
+      var cache = this.auth_cache;
+      if (!cache) return null;
+
+      var cached = cache.counts.get(server_id);
+      if (cached && Date.now() - cached.at < cache_ms) return cached;
+      var pending = cache.inflight.get(server_id);
       if (pending) return pending;
 
-      var self = this;
-
-      var request = (async function() {
+      var request = (async () => {
         try {
-          var members = await fetch_all_rows(
-            '/rest/v1/server_members?server_id=eq.' +
-            encodeURIComponent(server_id) +
-            '&select=user_id&order=user_id.asc'
-          );
-
-          // Count unique user IDs rather than the length of a single capped response.
-          var member_ids = new Set();
-          members.forEach(function(member) {
-            if (member && member.user_id != null) {
-              member_ids.add(String(member.user_id));
-            }
-          });
+          var [member_ids, online_ids] = await Promise.all([
+            fetch_user_ids('/rest/v1/server_members?server_id=eq.' +
+              encodeURIComponent(server_id) + '&select=user_id&order=user_id.asc', token),
+            this.get_online_ids(cache)
+          ]);
 
           var online = null;
-
-          try {
-            var online_rows = await fetch_all_rows(
-              '/rest/v1/who_online?select=user_id&order=user_id.asc'
-            );
-
-            var online_ids = new Set();
-            online_rows.forEach(function(row) {
-              if (row && row.user_id != null) {
-                online_ids.add(String(row.user_id));
-              }
-            });
-
+          if (online_ids) {
             online = 0;
-            member_ids.forEach(function(user_id) {
+            for (var user_id of member_ids) {
               if (online_ids.has(user_id)) online++;
-            });
-          } catch (e) {
-            // Keep showing the total if the online-user endpoint is unavailable.
+            }
           }
 
-          var result = {
-            total: member_ids.size,
-            online: online,
-            at: Date.now()
-          };
-
-          self.cache.set(server_id, result);
+          var result = { total: member_ids.size, online: online, at: Date.now() };
+          cache.counts.delete(server_id);
+          cache.counts.set(server_id, result);
+          if (cache.counts.size > server_cache_limit) cache.counts.delete(cache.counts.keys().next().value);
           return result;
         } catch (err) {
           console.warn('[MemberCount] fetch failed', err.message);
           return null;
+        } finally {
+          cache.inflight.delete(server_id);
         }
       })();
 
-      this.inflight.set(server_id, request);
-
-      try {
-        return await request;
-      } finally {
-        if (this.inflight.get(server_id) === request) {
-          this.inflight.delete(server_id);
-        }
-      }
+      cache.inflight.set(server_id, request);
+      return request;
     },
 
     render_one(container, counts) {
@@ -269,15 +239,17 @@
         return;
       }
 
-      var counts = await this.get_counts(server_id);
+      var pending = this.get_counts(server_id);
+      var cache = this.auth_cache;
+      var counts = await pending;
 
-      // Avoid rendering a result for the previous server after a quick server switch.
-      if (active_server() !== server_id) return;
+      // Avoid rendering a result for a previous server, login or plugin activation.
+      if (!this.observer || this.auth_cache !== cache || active_server() !== server_id) return;
 
       var current_container = find_member_container();
       if (!current_container) return;
 
-      if (counts) this.render_one(current_container, counts);
+      if (counts || !cache) this.render_one(current_container, counts);
     },
 
     inject_css() {
@@ -305,7 +277,11 @@
       this.inject_css();
 
       this.observer = new MutationObserver(function() {
-        self.refresh();
+        if (self.refresh_frame !== null) return;
+        self.refresh_frame = requestAnimationFrame(function() {
+          self.refresh_frame = null;
+          self.refresh();
+        });
       });
 
       this.observer.observe(document.body, {
@@ -341,8 +317,11 @@
         n.remove();
       });
 
-      this.cache.clear();
-      this.inflight.clear();
+      if (this.refresh_frame !== null) {
+        cancelAnimationFrame(this.refresh_frame);
+        this.refresh_frame = null;
+      }
+      this.auth_cache = null;
       console.log('[MemberCount] disarmed');
     },
   };
