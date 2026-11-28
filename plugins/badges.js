@@ -1,6 +1,7 @@
 // GITHUB WORKFLOWS BOT, FUCK YOUUUUUU. ACTUALLY LIKE GENUINELY FUCK YOU.
 (function() {
     const A = window.YapPlusAssets || {};
+    const recentMessageLimit = 4000;
 
     if (!window.__ypBadgeTooltipSetup) {
         window.__ypBadgeTooltipSetup = true;
@@ -126,7 +127,6 @@
             }
         };
         
-        if (B.m[id]) return B.m[id] = { s: src, t: hover || '' }, B.p();
         B.m[id] = { s: src, t: hover || '' };
         
         if (!document.getElementById('yp-ftx-css')) {
@@ -135,9 +135,6 @@
             s.textContent = '[class^=yp-ftx-]{height:16px;width:16px;margin-left:4px;vertical-align:-3px;align-self:center;object-fit:contain;user-select:none}';
             document.head.appendChild(s);
         }
-        B.p();
-        if (!B.t) B.t = setInterval(B.p, 1e3);
-        if (!B.o) (B.o = new MutationObserver(B.p)).observe(document.documentElement, { childList: !0, subtree: !0 });
     }
 
     const staffbadge = {
@@ -156,6 +153,7 @@
         origOnMessage: null,
         paintTimer: null,
         healTimer: null,
+        retryHealAfter: 0,
         healInterval: null,
         token: null,
 
@@ -172,7 +170,10 @@
         },
 
         remember(msgId, authorId) {
-            if (msgId && authorId) this.msgAuthor.set(msgId, String(authorId).toLowerCase());
+            if (!msgId || !authorId) return;
+            this.msgAuthor.delete(msgId);
+            this.msgAuthor.set(msgId, String(authorId).toLowerCase());
+            this.unresolvable.delete(msgId);
         },
 
         sniffToken(input, init) {
@@ -291,29 +292,22 @@
             }
 
             this.observer = new MutationObserver(() => self.schedulePaint());
-            this.observer.observe(document.body, { childList: true, subtree: true });
+            this.observer.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributeFilter: ['src', 'data-message-id']
+            });
             this.schedulePaint();
-            this.backfill();
-            this.healInterval = setInterval(() => self.heal(), 4000);
+            this.healInterval = setInterval(() => self.scheduleHeal(), 4000);
             console.log('[Libyapcore] [I]> staddfabdge rizzed');
         },
 
-        async backfill() {
-            try {
-                const loc = (location.href.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i) || [])[0];
-                if (!loc) return;
-                const token = this.getToken();
-                if (!token) return;
-                const anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZmt1cXpkZHd2dGRvanpnbWRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE2Mzk0ODgsImV4cCI6MjEwNzIxNTQ4OH0.kMZcUf8DgMrYFNGtMPW9SGja2m1cRdMq5WJv5XBNgCU';
-                const res = await (this.origFetch || window.fetch)(
-                    `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?channel_id=eq.${loc}&select=id,author_id&order=created_at.desc&limit=200`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
-                );
-                if (res.ok) {
-                    const rows = await res.json();
-                    if (Array.isArray(rows)) rows.forEach(r => this.remember(r.id, r.author_id));
-                    this.schedulePaint();
-                }
-            } catch (e) {}
+        scheduleHeal() {
+            if (this.healing || this.healTimer !== null || Date.now() < this.retryHealAfter) return;
+            this.healTimer = setTimeout(() => {
+                this.healTimer = null;
+                void this.heal();
+            }, 120);
         },
 
         async heal() {
@@ -321,7 +315,8 @@
             const missing = [];
             document.querySelectorAll('.msg[data-message-id]').forEach(el => {
                 const id = el.getAttribute('data-message-id');
-                if (id && !this.msgAuthor.has(id) && !this.unresolvable.has(id)) missing.push(id);
+                if (id && !this.msgAuthor.has(id) && !this.unresolvable.has(id) &&
+                    el.querySelector('.msg-head .msg-author')) missing.push(id);
             });
             if (!missing.length) return;
             const token = this.getToken();
@@ -333,16 +328,19 @@
                 const res = await (this.origFetch || window.fetch)(
                     `https://dnfkuqzddwvtdojzgmdm.supabase.co/rest/v1/messages?id=in.(${batch.join(',')})&select=id,author_id`, { headers: { apikey: anonKey, Authorization: `Bearer ${token}` } }
                 );
-                if (res.ok) {
-                    const rows = await res.json();
-                    const found = new Set();
-                    if (Array.isArray(rows)) rows.forEach(r => { this.remember(r.id, r.author_id);
-                        found.add(r.id); });
-                    batch.forEach(id => { if (!found.has(id)) this.unresolvable.add(id); });
-                    this.schedulePaint();
-                }
-            } catch (e) {}
-            this.healing = false;
+                if (!res.ok) throw new Error(`Badge author lookup failed: ${res.status}`);
+                const rows = await res.json();
+                if (!Array.isArray(rows)) throw new Error('Invalid badge author lookup response');
+                rows.forEach(row => this.remember(row.id, row.author_id));
+                batch.forEach(id => {
+                    if (!this.msgAuthor.has(id)) this.unresolvable.add(id);
+                });
+                this.schedulePaint();
+            } catch (error) {
+                this.retryHealAfter = Date.now() + 4000;
+            } finally {
+                this.healing = false;
+            }
         },
 
         stop() {
@@ -359,14 +357,20 @@
             if (this.observer) { this.observer.disconnect();
                 this.observer = null; }
             clearInterval(this.healInterval);
-            clearTimeout(this.paintTimer);
+            clearTimeout(this.healTimer);
+            this.healTimer = null;
+            cancelAnimationFrame(this.paintTimer);
+            this.paintTimer = null;
             document.querySelectorAll('.yp-staff-badge, .yp-helper-badge').forEach(el => el.remove());
             console.log('[Libyapcore] [I]> [StaffBadge] disarmed');
         },
 
         schedulePaint() {
-            clearTimeout(this.paintTimer);
-            this.paintTimer = setTimeout(() => this.paint(), 80);
+            if (!this.observer || this.paintTimer !== null) return;
+            this.paintTimer = requestAnimationFrame(() => {
+                this.paintTimer = null;
+                this.paint();
+            });
         },
 
         injectCss() {
@@ -392,14 +396,26 @@
 
         paint() {
             this.injectCss();
-            document.querySelectorAll('.msg[data-message-id]').forEach(el => {
-                const mid = el.getAttribute('data-message-id');
-                const author = this.msgAuthor.get(mid);
+            let needsAuthorLookup = false;
+            const messages = document.querySelectorAll('.msg[data-message-id]');
+            messages.forEach(el => {
                 const name = el.querySelector('.msg-head .msg-author');
                 if (!name) return;
+                const mid = el.getAttribute('data-message-id');
+                let author = this.msgAuthor.get(mid);
+                if (!author) {
+                    const avatar = el.querySelector('.msg-gutter img');
+                    const id = avatar?.src.match(/\/avatars\/([0-9a-f-]{36})\//i)?.[1];
+                    if (id) {
+                        this.remember(mid, id);
+                        author = this.msgAuthor.get(mid);
+                    } else if (mid && !this.unresolvable.has(mid)) {
+                        needsAuthorLookup = true;
+                    }
+                }
                 const head = name.parentNode;
 
-                const wantStaff = !!(author && this.isBadged(author));
+                const wantStaff = !!(author && this.BADGE_SRC && this.isBadged(author));
                 const wantHelper = !!(author && this.HELPER_BADGE_SRC && this.isHelper(author));
 
                 let staffEl = head.querySelector(':scope > .yp-staff-badge');
@@ -436,6 +452,19 @@
                     helperEl.remove();
                 }
             });
+            const caches = [this.msgAuthor, this.unresolvable].filter(cache => cache.size > recentMessageLimit);
+            if (caches.length) {
+                const visible = new Set(Array.from(messages, el => el.getAttribute('data-message-id')));
+                for (const cache of caches) {
+                    const limit = recentMessageLimit + visible.size;
+                    for (const id of cache.keys()) {
+                        if (cache.size <= limit) break;
+                        if (!visible.has(id)) cache.delete(id);
+                    }
+                }
+            }
+            window.__ftx?.p();
+            if (needsAuthorLookup) this.scheduleHeal();
         },
     };
 

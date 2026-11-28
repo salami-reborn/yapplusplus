@@ -50,7 +50,7 @@
   const plugin = {
     id: 'yapmod-client',
     name: 'Yapmod Client',
-    description: 'Run the imported Yapmod Client bundle from Yap++ Settings.',
+    description: 'Fetch and run the latest Yapmod Client release from GitHub.',
     async start() {
       const token = ++runtoken;
       const run = api('runYapmodClient');
@@ -60,13 +60,22 @@
         return;
       }
       try {
+        let cached = null;
+        try { cached = localStorage.getItem(bundlekey); } catch (e) {}
         let source = null;
-        try { source = localStorage.getItem(bundlekey); } catch (e) {}
-        if (!source || !source.trim()) {
+        if (api('fetchYapmodRelease')) {
           if (token !== runtoken) return;
           setstatus('Fetching the latest GitHub release...');
-          source = await fetchbundle();
+          try {
+            source = await fetchbundle();
+          } catch (error) {
+            if (!cached || !cached.trim()) throw error;
+            source = cached;
+          }
+        } else {
+          source = cached;
         }
+        if (!source || !source.trim()) throw new Error('The Yapmod Client bundle is empty.');
         if (token !== runtoken) return;
         await run(source);
         setstatus(`Running ${localStorage.getItem(namekey) || 'Yapmod Client'}.`, '#57f287');

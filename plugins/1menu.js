@@ -28,23 +28,23 @@ const aboutpanelid = 'yapplus-about-panel';
     #${panelid} a:hover, #${settingspanelid} a:hover, #${themespanelid} a:hover, #${custompanelid} a:hover { text-decoration: underline; }
     .yp-section { margin-bottom: 24px; }
     .yp-section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: #b5bac1; margin: 0 0 10px; }
-    .yp-switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
-    .yp-switch input { opacity: 0; width: 0; height: 0; }
-    .yp-slider { position: absolute; inset: 0; background: #4e5058; border-radius: 22px; transition: background .15s; cursor: pointer; }
-    .yp-slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .15s; }
-    .yp-switch input:checked + .yp-slider { background: #e27ed3; }
-    .yp-switch input:checked + .yp-slider::before { transform: translateX(18px); }
+    .ypp-switch { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+    .ypp-switch input { opacity: 0; width: 0; height: 0; }
+    .ypp-slider { position: absolute; inset: 0; background: #4e5058; border-radius: 22px; transition: background .15s; cursor: pointer; }
+    .ypp-slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .15s; }
+    .ypp-switch input:checked + .ypp-slider { background: #e27ed3; }
+    .ypp-switch input:checked + .ypp-slider::before { transform: translateX(18px); }
     .yp-plugin-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2b2d31; }
     .yp-plugin-row:last-child { border-bottom: none; }
     .yp-plugin-name { font-weight: 600; color: #fff; }
     .yp-plugin-desc { font-size: 12px; color: #949ba4; margin-top: 2px; }
     .yp-row-actions { display: flex; align-items: center; gap: 12px; }
-    .yp-btn { background: #e27ed3; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
-    .yp-btn:disabled { background: #4e5058; cursor: default; }
-    .yp-btn-gray { background: #4e5058; }
-    .yp-btn-danger { background: #ff4b4b; }
+    .ypp-btn { background: #e27ed3; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px; }
+    .ypp-btn:disabled { background: #4e5058; cursor: default; }
+    .ypp-btn-gray { background: #4e5058; }
+    .ypp-btn-danger { background: #ff4b4b; }
     .yp-code { width: 100%; background: #1e1f22; border: 1px solid #3f4147; border-radius: 6px; color: #dbdee1; padding: 8px 10px; font-size: 13px; font-family: monospace; outline: none; box-sizing: border-box; resize: vertical; line-height: 1.5; }
-    .yp-input { width: 100%; background: #1e1f22; border: 1px solid #3f4147; border-radius: 6px; color: #dbdee1; padding: 8px 10px; font-size: 14px; outline: none; box-sizing: border-box; }
+    .ypp-input { width: 100%; background: #1e1f22; border: 1px solid #3f4147; border-radius: 6px; color: #dbdee1; padding: 8px 10px; font-size: 14px; outline: none; box-sizing: border-box; }
     .yp-type-tag { display: inline-flex; align-items: center; gap: 5px; background: #2b2d31; border: 1px solid #3f4147; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #dbdee1; margin: 3px; }
     .yp-type-tag button { background: none; border: none; color: #949ba4; cursor: pointer; font-size: 14px; line-height: 1; padding: 0; display: flex; align-items: center; }
     .yp-type-tag button:hover { color: #ff4b4b; }
@@ -189,12 +189,12 @@ const aboutpanelid = 'yapplus-about-panel';
         const info = document.createElement('div');
         info.innerHTML = `<div class="yp-plugin-name">${plugin.name}</div><div class="yp-plugin-desc">${plugin.description || ''}</div>`;
         const label = document.createElement('label');
-        label.className = 'yp-switch';
+        label.className = 'ypp-switch';
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.checked = window.PluginHost.isEnabled(plugin);
         const slider = document.createElement('span');
-        slider.className = 'yp-slider';
+        slider.className = 'ypp-slider';
         label.appendChild(input);
         label.appendChild(slider);
         input.addEventListener('change', () => { window.PluginHost.setEnabled(plugin, input.checked); });
@@ -253,17 +253,17 @@ const aboutpanelid = 'yapplus-about-panel';
           <div class="yp-plugin-name">Developer mode</div>
           <div class="yp-plugin-desc">Shows the customplugin box and the Custom Plugins tab.</div>
         </div>
-        <label class="yp-switch">
+        <label class="ypp-switch">
           <input type="checkbox" id="yp-dev-switch">
-          <span class="yp-slider"></span>
+          <span class="ypp-slider"></span>
         </label>
       </div>
       <div id="yp-dev-box" style="display:none;margin-top:14px;">
         <p style="font-size:12px;color:#949ba4;margin:0 0 6px;">customplugin</p>
         <textarea id="yp-dev-code" class="yp-code" rows="12" spellcheck="false" placeholder="window.PluginHost.register({ id: '676767', name: 'testing', description: 'hi this is my very cool plugin (credits: @skibidilarp)', start() {}, stop() {} });"></textarea>
         <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
-          <button id="yp-dev-add" class="yp-btn">Add plugin</button>
-          <button id="yp-dev-reload" class="yp-btn yp-btn-gray">Reload</button>
+          <button id="yp-dev-add" class="ypp-btn">Add plugin</button>
+          <button id="yp-dev-reload" class="ypp-btn ypp-btn-gray">Reload</button>
           <span id="yp-dev-status" style="font-size:13px;color:#949ba4;"></span>
         </div>
       </div>
@@ -384,107 +384,13 @@ const aboutpanelid = 'yapplus-about-panel';
       }
     });
 
-    const yapmodsection = document.createElement('div');
-    yapmodsection.className = 'yp-section';
-    yapmodsection.innerHTML = `
-      <h3>Yapmod Client</h3>
-      <p style="font-size:12px;color:#949ba4;margin:0 0 10px;">Turn on Yapmod Client to fetch and run the latest GitHub release. Its code can access your Yapin page and account.</p>
-      <div class="yp-plugin-row">
-        <div>
-          <div class="yp-plugin-name">Enable Yapmod Client</div>
-          <div class="yp-plugin-desc">Turn Yapmod on or off.</div>
-        </div>
-        <label class="yp-switch">
-          <input type="checkbox" id="yp-yapmod-switch">
-          <span class="yp-slider"></span>
-        </label>
-      </div>
-      <p id="yp-yapmod-status" style="font-size:12px;color:#949ba4;margin:8px 0 0;"></p>
-    `;
-    p.appendChild(yapmodsection);
-    const yapmodstatus = yapmodsection.querySelector('#yp-yapmod-status');
-    const yapmodswitch = yapmodsection.querySelector('#yp-yapmod-switch');
-    const yapmodbundlekey = 'yapplus.yapmod.bundle';
-    const yapmodnamekey = 'yapplus.yapmod.filename';
-    let yapmodloading = false;
-    function findyapmodplugin() {
-      return window.PluginHost.all().find((plugin) => plugin.id === 'yapmod-client');
-    }
-    function syncyapmodswitch() {
-      const plugin = findyapmodplugin();
-      yapmodswitch.checked = !!plugin && window.PluginHost.isEnabled(plugin);
-      yapmodswitch.disabled = !plugin || yapmodloading;
-    }
-    syncyapmodswitch();
-    window.PluginHost.onChange(syncyapmodswitch);
-    function renderyapmodstatus(message, color) {
-      const filename = localStorage.getItem(yapmodnamekey);
-      let saved = null;
-      let savedcolor = null;
-      try {
-        saved = localStorage.getItem('yapplus.yapmod.status');
-        savedcolor = localStorage.getItem('yapplus.yapmod.statuscolor');
-      } catch (e) {}
-      const plugin = findyapmodplugin();
-      const enabled = !!plugin && window.PluginHost.isEnabled(plugin);
-      yapmodstatus.textContent = message || (enabled && saved) || (filename ? 'Last fetched: ' + filename : 'Turn on to fetch the latest release.');
-      yapmodstatus.style.color = color || (enabled && savedcolor ? savedcolor : '#949ba4');
-    }
-    renderyapmodstatus();
-    window.addEventListener('yapplus-yapmod-status', (event) => {
-      const detail = event && event.detail;
-      if (!detail) return;
-      renderyapmodstatus(detail.message, detail.color);
-    });
-    yapmodswitch.addEventListener('change', async () => {
-      const plugin = findyapmodplugin();
-      if (!plugin) {
-        syncyapmodswitch();
-        return;
-      }
-      if (!yapmodswitch.checked) {
-        window.PluginHost.setEnabled(plugin, false);
-        renderyapmodstatus('Yapmod Client disabled.');
-        return;
-      }
-      if (!confirm('Fetch and run the latest Yapmod Client release? Its code can access your Yapin page and account.')) {
-        yapmodswitch.checked = false;
-        return;
-      }
-      yapmodloading = true;
-      syncyapmodswitch();
-      renderyapmodstatus('Fetching the latest GitHub release...');
-      try {
-        if (!window.electronAPI || typeof window.electronAPI.fetchYapmodRelease !== 'function') {
-          throw new Error('GitHub release fetching is unavailable.');
-        }
-        const release = await window.electronAPI.fetchYapmodRelease();
-        if (!release || typeof release.tag !== 'string' || typeof release.filename !== 'string') {
-          throw new Error('GitHub returned an invalid Yapmod Client release.');
-        }
-        if (typeof release.source !== 'string' || !release.source.trim() || new Blob([release.source]).size > 2 * 1024 * 1024) {
-          throw new Error('The Yapmod Client bundle is empty or larger than 2 MB.');
-        }
-        localStorage.setItem(yapmodbundlekey, release.source);
-        localStorage.setItem(yapmodnamekey, `${release.filename} (${release.tag})`);
-        window.PluginHost.setEnabled(plugin, true);
-        renderyapmodstatus(`Enabled ${release.tag}: ${release.filename}`);
-      } catch (error) {
-        yapmodswitch.checked = false;
-        renderyapmodstatus(error && error.message ? error.message : 'Could not fetch the latest release.', '#ff4b4b');
-      } finally {
-        yapmodloading = false;
-        syncyapmodswitch();
-      }
-    });
-
     const aesection = document.createElement('div');
     aesection.className = 'yp-section';
     aesection.innerHTML = `
       <h3>Auto Edit</h3>
       <p style="font-size:12px;color:#949ba4;margin:0 0 8px;">Type the command and it get's autoreplaced!!!</p>
-      <input id="yapplus-ae-cmd" type="text" placeholder="/command" autocomplete="off" class="yp-input" style="margin-bottom:8px;">
-      <input id="yapplus-ae-text" type="text" placeholder="text" autocomplete="off" class="yp-input">
+      <input id="yapplus-ae-cmd" type="text" placeholder="/command" autocomplete="off" class="ypp-input" style="margin-bottom:8px;">
+      <input id="yapplus-ae-text" type="text" placeholder="text" autocomplete="off" class="ypp-input">
     `;
     p.appendChild(aesection);
     const aecmd = aesection.querySelector('#yapplus-ae-cmd');
@@ -546,7 +452,7 @@ const aboutpanelid = 'yapplus-about-panel';
     cbsection.innerHTML = `
       <h3>Custom Background</h3>
       <p style="font-size:12px;color:#949ba4;margin:0 0 8px;">Paste a direct image link and pick opacity.</p>
-      <input id="ypp-bg-url" type="text" placeholder="https://example.com/image.png" autocomplete="off" class="yp-input" style="margin-bottom:10px;">
+      <input id="ypp-bg-url" type="text" placeholder="https://example.com/image.png" autocomplete="off" class="ypp-input" style="margin-bottom:10px;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
         <span style="font-size:12px;color:#949ba4;">Opacity</span>
         <input id="ypp-bg-opacity" type="range" min="0" max="100" step="1" style="flex:1;">
@@ -555,9 +461,9 @@ const aboutpanelid = 'yapplus-about-panel';
       <p style="font-size:12px;color:#949ba4;margin:12px 0 6px;">Current Server Background (this background will <b>ONLY</b> be used in the server <b>you are currently in</b></p>
       <p style="font-size:8px;color:#949ba4;margin:12px 0 6px;">guys please stop forgetting to enable the plugin before making a bug report</p>
       <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <input id="ypp-bg-server-url" type="text" placeholder="direct image link but for this server's background" autocomplete="off" class="yp-input" style="flex:1;">
-        <button id="ypp-bg-server-save" class="yp-btn" style="padding:6px 12px;font-size:12px;">Done</button>
-        <button id="ypp-bg-server-clear" class="yp-btn yp-btn-gray" style="padding:6px 12px;font-size:12px;">Clear</button>
+        <input id="ypp-bg-server-url" type="text" placeholder="direct image link but for this server's background" autocomplete="off" class="ypp-input" style="flex:1;">
+        <button id="ypp-bg-server-save" class="ypp-btn" style="padding:6px 12px;font-size:12px;">Done</button>
+        <button id="ypp-bg-server-clear" class="ypp-btn ypp-btn-gray" style="padding:6px 12px;font-size:12px;">Clear</button>
       </div>
       <p style="font-size:12px;color:#949ba4;margin:0 0 6px;">Custom CSS theme</p>
       <textarea id="ypp-bg-themecss" rows="8" placeholder=".msg-author { color: hotpink !important; }" style="width:100%;background:#1e1f22;border:1px solid #3f4147;border-radius:6px;color:#dbdee1;padding:8px 10px;font-size:13px;font-family:monospace;outline:none;box-sizing:border-box;resize:vertical;line-height:1.5;"></textarea>
@@ -603,9 +509,9 @@ const aboutpanelid = 'yapplus-about-panel';
       <h3>Custom Font</h3>
       <p style="font-size:12px;color:#949ba4;margin:0 0 8px;">Set a custom font family (e.g. Comic Sans MS, JetBrains Mono, Inter).</p>
       <div style="display:flex;gap:8px;">
-        <input id="ypp-custom-font-input" type="text" placeholder="Font name (e.g. Comic Sans MS, monospace)..." autocomplete="off" class="yp-input" style="flex:1;">
-        <button id="ypp-custom-font-save" class="yp-btn" style="padding:6px 12px;font-size:12px;">Apply</button>
-        <button id="ypp-custom-font-reset" class="yp-btn yp-btn-gray" style="padding:6px 12px;font-size:12px;">Reset</button>
+        <input id="ypp-custom-font-input" type="text" placeholder="Font name (e.g. Comic Sans MS, monospace)..." autocomplete="off" class="ypp-input" style="flex:1;">
+        <button id="ypp-custom-font-save" class="ypp-btn" style="padding:6px 12px;font-size:12px;">Apply</button>
+        <button id="ypp-custom-font-reset" class="ypp-btn ypp-btn-gray" style="padding:6px 12px;font-size:12px;">Reset</button>
       </div>
     `;
     p.appendChild(fontsection);
@@ -632,8 +538,8 @@ const aboutpanelid = 'yapplus-about-panel';
       <p id="ypp-yaplay-status" role="status" style="font-size:13px;color:#e27ed3;"></p>
       <label for="ypp-yaplay-port">Local port</label>
       <div style="display:flex;gap:8px;margin:8px 0 12px;">
-        <input id="ypp-yaplay-port" type="number" min="1" max="65535" step="1" class="yp-input">
-        <button id="ypp-yaplay-apply" class="yp-btn">Apply</button>
+        <input id="ypp-yaplay-port" type="number" min="1" max="65535" step="1" class="ypp-input">
+        <button id="ypp-yaplay-apply" class="ypp-btn">Apply</button>
       </div>
       <label><input id="ypp-yaplay-notifications" type="checkbox"> Forward notifications to Yaplay</label>
       <p style="font-size:12px;color:#949ba4;">Notification titles and bodies are shared only when this option is enabled. Yaplay must be running on the same computer.</p>
@@ -665,7 +571,7 @@ const aboutpanelid = 'yapplus-about-panel';
       <h1>Custom Plugins</h1>
       <h2>Plugins you added in developer mode</h2>
       <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-        <button id="yp-custom-reload" class="yp-btn">Reload</button>
+        <button id="yp-custom-reload" class="ypp-btn">Reload</button>
         <span style="font-size: 13px; color: #949ba4;">Reload to fully remove deleted plugins.</span>
       </div>
       <hr><p></p>
@@ -707,12 +613,12 @@ const aboutpanelid = 'yapplus-about-panel';
 
         if (plugins.length) {
           const label = document.createElement('label');
-          label.className = 'yp-switch';
+          label.className = 'ypp-switch';
           const input = document.createElement('input');
           input.type = 'checkbox';
           input.checked = plugins.every((plugin) => window.PluginHost.isEnabled(plugin));
           const slider = document.createElement('span');
-          slider.className = 'yp-slider';
+          slider.className = 'ypp-slider';
           label.appendChild(input);
           label.appendChild(slider);
           input.addEventListener('change', () => {
@@ -722,7 +628,7 @@ const aboutpanelid = 'yapplus-about-panel';
         }
 
         const del = document.createElement('button');
-        del.className = 'yp-btn yp-btn-danger';
+        del.className = 'ypp-btn ypp-btn-danger';
         del.textContent = 'Delete';
         del.addEventListener('click', () => {
           deleteentry(entry.key);
@@ -750,7 +656,7 @@ const aboutpanelid = 'yapplus-about-panel';
       <hr><p></p>
       <div class="yp-search-wrap">
         ${SVGS.search}
-        <input type="text" id="yp-theme-search" class="yp-input" placeholder="Search themes...">
+        <input type="text" id="yp-theme-search" class="ypp-input" placeholder="Search themes...">
       </div>
       <div id="yp-theme-list" class="yp-section"></div>
     `;
@@ -820,13 +726,13 @@ const aboutpanelid = 'yapplus-about-panel';
         }
 
         const label = document.createElement('label');
-        label.className = 'yp-switch';
+        label.className = 'ypp-switch';
         const input = document.createElement('input');
         input.type = 'checkbox';
         input.checked = isActive;
         
         const slider = document.createElement('span');
-        slider.className = 'yp-slider';
+        slider.className = 'ypp-slider';
         
         input.addEventListener('change', () => {
           if (input.checked) {
@@ -877,16 +783,18 @@ const aboutpanelid = 'yapplus-about-panel';
   (async () => {
     try {
       if (!window.electronAPI || !window.electronAPI.getThemes) return;
-      const themes = await window.electronAPI.getThemes();
       const saved = localStorage.getItem('yapplus.activeTheme');
-      if (!saved || !themes[saved]) return;
+      if (!saved) return;
+      const css = await window.electronAPI.getTheme?.(saved).catch(() => undefined);
+      const theme = css === undefined ? (await window.electronAPI.getThemes())[saved] : css;
+      if (!theme) return;
       let el = document.getElementById('yapplus-active-theme');
       if (!el) {
         el = document.createElement('style');
         el.id = 'yapplus-active-theme';
         document.head.appendChild(el);
       }
-      el.textContent = themes[saved];
+      el.textContent = theme;
     } catch (e) {}
   })();
 

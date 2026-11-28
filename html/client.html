@@ -25,48 +25,77 @@
             if (guestpreload) webview.setAttribute('preload', guestpreload);
         }
 
-        let retrycount = 0;
-        webview.addEventListener('did-finish-load', async () => {
-            retrycount = 0;
-            try {
-                const assets = {
-                    staff: await window.electronAPI.getAsset('Staffcontrib.png'),
-                    helper: await window.electronAPI.getAsset('Helper.png'),
-                    vim: await window.electronAPI.getAsset('Vim.png'),
-                    potato: await window.electronAPI.getAsset('Cutepotato.png'),
-                    whitebox: await window.electronAPI.getAsset('whiteboxbadgeidkwhy.png'),
-                    sigma: await window.electronAPI.getAsset('Hefeelsverysigma.png'),
-                    chud: await window.electronAPI.getAsset('CERTIFIEDCHUD.png'),
-                    yppIcon: await window.electronAPI.getAsset('yppIcon.png'),
-                    yapjsbadge: await window.electronAPI.getAsset('yapjsbadge.png'),
-                    astolfodoodle: await window.electronAPI.getAsset('astolfo_doodle.png'),
-                    gothheart: await window.electronAPI.getAsset('blackheart.png')
-                };
-                await webview.executeJavaScript(`window.YapPlusAssets = ${JSON.stringify(assets)};`);
-                setTimeout(async () => {
-                    const plugincode = await window.electronAPI.getPlugins();
-                    if (plugincode && plugincode.trim().length > 0) {
-                        try {
-                            await webview.executeJavaScript(plugincode);
-                        } catch (err) {
-                            console.error('[Yap++] plugin load error:', err);
-                        }
-                    }
-                }, 1500);
+        const assetFiles = {
+            staff: 'Staffcontrib.png',
+            helper: 'Helper.png',
+            vim: 'Vim.png',
+            potato: 'Cutepotato.png',
+            whitebox: 'whiteboxbadgeidkwhy.png',
+            sigma: 'Hefeelsverysigma.png',
+            chud: 'CERTIFIEDCHUD.png',
+            yppIcon: 'yppIcon.png',
+            yapjsbadge: 'yapjsbadge.png',
+            astolfodoodle: 'astolfo_doodle.png',
+            gothheart: 'blackheart.png'
+        };
 
-            } catch (err) {
+        async function loadStartupCode() {
+            const api = window.electronAPI;
+            const entries = Object.entries(assetFiles);
+            if (api.getStartupCode) {
+                try {
+                    return await api.getStartupCode(entries);
+                } catch {
+                    // Older hot copies of main.js still expose the separate handlers.
+                }
+            }
+            const [assets, plugins] = await Promise.all([
+                Promise.all(entries.map(async ([key, file]) => [
+                    key, await api.getAsset(file).catch(() => null)
+                ])).then(Object.fromEntries),
+                api.getPlugins()
+            ]);
+            return plugins?.trim() ? `window.YapPlusAssets = ${JSON.stringify(assets)};\n${plugins}` : '';
+        }
+
+        // Prepare the local code while Yapin loads. Consume the snapshot once so
+        // subsequent reloads pick up changes to plugins and assets.
+        let initialStartupCode = loadStartupCode().catch(() => null);
+        let retrycount = 0;
+        let navigation = 0;
+        webview.addEventListener('did-start-navigation', (event) => {
+            if (event.isMainFrame && !event.isInPlace) navigation++;
+        });
+        webview.addEventListener('did-finish-load', () => { retrycount = 0; });
+        webview.addEventListener('dom-ready', async () => {
+            const documentNavigation = navigation;
+            try {
+                void webview.insertCSS(`
+                    .auth-card .passkey-login,
+                    .auth-card .passkey-login + .auth-or,
+                    .passkey-card,
+                    .passkey-list { display: none !important; }
+                `).catch(error => console.error('[Yap++] sign-in styles failed:', error));
+                const pending = initialStartupCode;
+                initialStartupCode = null;
+                const code = (await pending) ?? await loadStartupCode();
+                if (documentNavigation === navigation && code) {
+                    await webview.executeJavaScript(code);
+                }
+            } catch (error) {
+                console.error('[Yap++] plugin load error:', error);
             }
         });
         webview.addEventListener('did-fail-load', (event) => {
-            if (event.isMainFrame && retrycount < 3) {
-                retrycount++;
-                setTimeout(() => {
-                    webview.reload();
-                }, 2000);
-            }
+            if (!event.isMainFrame || event.errorCode === -3 || retrycount >= 3) return;
+            retrycount++;
+            const failedNavigation = navigation;
+            setTimeout(() => {
+                if (failedNavigation === navigation && retrycount > 0) webview.reload();
+            }, 2000);
         });
 
-        webview.setAttribute('src', 'https://yapper.website');
+        webview.setAttribute('src', 'https://www.yapin.gg/?auth=in');
         document.body.appendChild(webview);
     </script>
 </body>
