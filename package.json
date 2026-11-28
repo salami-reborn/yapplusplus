@@ -1,6 +1,7 @@
 {
   "name": "yapplusplus",
   "productName": "Yap++",
+  "desktopName": "yapplusplus.desktop",
   "version": "1.0.0",
   "description": "The cutest client modification for Yapper.",
   "main": "app.js",

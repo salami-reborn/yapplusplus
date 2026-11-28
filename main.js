@@ -667,7 +667,7 @@ app.whenReady().then(() => {
         width: 1200,
         height: 800,
         autoHideMenuBar: true,
-        icon: path.join(appdir, 'assets', 'Icon.ico'),
+        icon: path.join(appdir, 'assets', process.platform === 'win32' ? 'Icon.ico' : 'yppIcon.png'),
         webPreferences: {
             webviewTag: true,
             preload: preloadpath,

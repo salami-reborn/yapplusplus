@@ -1,0 +1,172 @@
+name: Release desktop apps
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "New Git tag, for example U007 or v1.2.3"
+        required: true
+        type: string
+      title:
+        description: "Release title (defaults to the tag)"
+        type: string
+      app_version:
+        description: "Optional numeric app version, for example 1.2.3"
+        type: string
+      prerelease:
+        description: "Mark the GitHub release as a prerelease"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-24.04
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Validate tag and app version
+        id: version
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          APP_VERSION: ${{ inputs.app_version }}
+        run: |
+          if [[ -z "$RELEASE_TAG" || "$RELEASE_TAG" == -* ]] ||
+             ! git check-ref-format "refs/tags/$RELEASE_TAG"; then
+            echo "Enter a valid Git tag."
+            exit 1
+          fi
+
+          status=0
+          git ls-remote --exit-code --refs origin "refs/tags/$RELEASE_TAG" || status=$?
+          case "$status" in
+            0) echo "The tag already exists."; exit 1 ;;
+            2) ;;
+            *) exit "$status" ;;
+          esac
+
+          numeric_version='^(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})\.(0|[1-9][0-9]{0,4})$'
+          if [[ -z "$APP_VERSION" && "${RELEASE_TAG#v}" =~ $numeric_version ]]; then
+            APP_VERSION="${RELEASE_TAG#v}"
+          fi
+          APP_VERSION="${APP_VERSION:-$(node -p 'require("./package.json").version')}"
+          if [[ ! "$APP_VERSION" =~ $numeric_version ]] ||
+             (( BASH_REMATCH[1] > 65535 || BASH_REMATCH[2] > 65535 || BASH_REMATCH[3] > 65535 )); then
+            echo "The app version must have three numeric components from 0 to 65535 (for example, 1.2.3)."
+            exit 1
+          fi
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build ${{ matrix.platform }} ${{ matrix.arch }}
+    needs: prepare
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            arch: arm64
+            runner: macos-15
+            extension: zip
+          - platform: macos
+            arch: x64
+            runner: macos-15-intel
+            extension: zip
+          - platform: linux
+            arch: x64
+            runner: ubuntu-24.04
+            extension: AppImage
+          - platform: windows
+            arch: x64
+            runner: windows-2025
+            extension: exe
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Package the application
+        env:
+          APP_VERSION: ${{ needs.prepare.outputs.app_version }}
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          npm version "$APP_VERSION" --allow-same-version --no-git-tag-version --ignore-scripts
+          npm run make -- --arch="$BUILD_ARCH"
+      - name: Check the macOS app signature and executable
+        if: runner.os == 'macOS'
+        env:
+          APP_VERSION: ${{ needs.prepare.outputs.app_version }}
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          bundle="out/Yap++-darwin-$BUILD_ARCH/Yap++.app"
+          codesign --verify --deep --strict "$bundle"
+          test "$(ELECTRON_RUN_AS_NODE=1 "$bundle/Contents/MacOS/Yap++" -p 'process.arch')" = "$BUILD_ARCH"
+          test "$(plutil -extract CFBundleShortVersionString raw "$bundle/Contents/Info.plist")" = "$APP_VERSION"
+          icon=$(plutil -extract CFBundleIconFile raw "$bundle/Contents/Info.plist")
+          cmp assets/Icon.icns "$bundle/Contents/Resources/$icon"
+      - name: Collect the release asset
+        env:
+          BUILD_PLATFORM: ${{ matrix.platform }}
+          BUILD_ARCH: ${{ matrix.arch }}
+          EXTENSION: ${{ matrix.extension }}
+        run: |
+          asset=$(find out/make -type f -name "*.$EXTENSION")
+          if [[ ! -s "$asset" ]]; then
+            echo "Expected one $EXTENSION file in out/make."
+            exit 1
+          fi
+          mkdir release
+          cp "$asset" "release/YapPlusPlus-$BUILD_PLATFORM-$BUILD_ARCH.$EXTENSION"
+      - name: Check the Linux AppImage and desktop icon
+        if: runner.os == 'Linux'
+        run: |
+          ./release/YapPlusPlus-linux-x64.AppImage --appimage-extract >/dev/null
+          test "$(ELECTRON_RUN_AS_NODE=1 ./squashfs-root/yapplusplus -p 'process.arch')" = x64
+          cmp assets/yppIcon.png squashfs-root/yapplusplus.png
+      - uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}
+          path: release/*
+          if-no-files-found: error
+          compression-level: 0
+
+  publish:
+    name: Publish GitHub release
+    needs: [prepare, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          path: release
+          merge-multiple: true
+      - name: Publish the release and all four assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TITLE: ${{ inputs.title }}
+          PRERELEASE: ${{ inputs.prerelease }}
+          APP_VERSION: ${{ needs.prepare.outputs.app_version }}
+        run: |
+          gh release create --target "$GITHUB_SHA" --title "${RELEASE_TITLE:-$RELEASE_TAG}" \
+            --prerelease="$PRERELEASE" --generate-notes --notes "App version: $APP_VERSION." -- "$RELEASE_TAG" \
+            release/YapPlusPlus-macos-arm64.zip release/YapPlusPlus-macos-x64.zip \
+            release/YapPlusPlus-linux-x64.AppImage release/YapPlusPlus-windows-x64.exe
