@@ -43,7 +43,7 @@ the build, and the tag points to the selected source commit.
 
 GitHub publishes the release after all builds succeed. It includes macOS ZIPs
 for Apple Silicon and Intel, a Linux x64 AppImage, and a Windows x64 installer.
-The macOS builds are not notarized, and the Windows installer is unsigned.
+The macOS builds use ad-hoc signing, and the Windows installer is unsigned.
 
 ## Contributing
 

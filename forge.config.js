@@ -9,7 +9,7 @@ class YapAppImageMaker extends MakerAppImage {
   getTarget(targetArch, config) {
     const target = super.getTarget(targetArch, config);
     // AppImage icons come from electron-builder's Linux config.
-    target.config.linux = { icon: linuxIcon, category: "Network" };
+    target.config.linux = { icon: linuxIcon, category: "Network", syncDesktopName: true };
     return target;
   }
 }
@@ -17,7 +17,9 @@ class YapAppImageMaker extends MakerAppImage {
 module.exports = {
   packagerConfig: {
     name: 'Yap++',
+    executableName: process.platform === "linux" ? "yapplusplus" : undefined,
     icon: path.join(__dirname, "assets", "Icon"),
+    osxSign: { identity: "-", identityValidation: false, continueOnError: false },
     asar: false,
     ignore: [
       /^\/\.git/,
@@ -39,9 +41,10 @@ module.exports = {
       shortcutName: "Yap++",
       installerIcon: windowsIcon,
       uninstallerIcon: windowsIcon,
+      publish: null,
       include: path.resolve(__dirname, "installer", "installer.nsh")
     }),
     { name: "@electron-forge/maker-zip", platforms: ["darwin"] },
-    new YapAppImageMaker(),
+    new YapAppImageMaker({ publish: null }),
   ]
 };
