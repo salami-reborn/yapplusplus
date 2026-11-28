@@ -70,6 +70,12 @@
         webview.addEventListener('dom-ready', async () => {
             const documentNavigation = navigation;
             try {
+                void webview.insertCSS(`
+                    .auth-card .passkey-login,
+                    .auth-card .passkey-login + .auth-or,
+                    .passkey-card,
+                    .passkey-list { display: none !important; }
+                `).catch(error => console.error('[Yap++] sign-in styles failed:', error));
                 const pending = initialStartupCode;
                 initialStartupCode = null;
                 const code = (await pending) ?? await loadStartupCode();
