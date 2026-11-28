@@ -22,7 +22,7 @@ module.exports = {
     osxSign: {
       identity: "-",
       identityValidation: false,
-      hardenedRuntime: false,
+      optionsForFile: () => ({ hardenedRuntime: false }),
       continueOnError: false
     },
     asar: false,
