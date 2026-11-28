@@ -9,6 +9,10 @@ const internalhosts = ['yapper.website', 'yapin.gg'];
 const externalprotocols = ['http:', 'https:', 'mailto:', 'tel:'];
 const passprotocols = ['blob:', 'about:', 'devtools:'];
 
+app.commandLine.appendSwitch('disable-background-timer-throttling');
+app.commandLine.appendSwitch('disable-backgrounding-occluded-windows');
+app.commandLine.appendSwitch('disable-renderer-backgrounding');
+
 
 
 async function updatebadges() {
@@ -155,6 +159,16 @@ ipcMain.handle('get-plugins', () => getplugincode());
 
 const yaplaysessions = new Map();
 const yaplayActions = ['set_mute', 'set_deafen', 'leave_call'];
+const yaplayexpiry = 30000;
+
+function yaplaybackground(connection) {
+    const contents = connection.contents;
+    if (!contents || contents.isDestroyed()) return false;
+    const host = contents.hostWebContents || contents;
+    if (!host || host.isDestroyed()) return false;
+    const win = BrowserWindow.fromWebContents(host);
+    return Boolean(win && (!win.isVisible() || !win.isFocused() || win.isMinimized()));
+}
 
 function yaplaysource(event) {
     const frame = event.senderFrame;
@@ -343,7 +357,7 @@ ipcMain.handle('yaplay-start', (event, sessionid, port) => {
         || !Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid Yaplay session or port.');
     const old = yaplaysessions.get(senderid);
     if (old) yaplayclose(old);
-    yaplaysessions.set(senderid, { sessionid, port, socket: null, actions: [], last: '', call: null, seen: Date.now(), retry: 0 });
+    yaplaysessions.set(senderid, { sessionid, port, socket: null, actions: [], last: '', call: null, seen: Date.now(), retry: 0, contents: event.sender });
 });
 
 ipcMain.handle('yaplay-exchange', (event, sessionid, snapshot, notices, call) => {
@@ -396,9 +410,18 @@ app.on('web-contents-created', (event, contents) => {
     contents.once('destroyed', clear);
 });
 
+let yaplaylastcheck = Date.now();
 setInterval(() => {
+    const now = Date.now();
+    const paused = now - yaplaylastcheck > 5000;
+    yaplaylastcheck = now;
     for (const [senderid, connection] of yaplaysessions) {
-        if (Date.now() - connection.seen > 5000) {
+        if (!connection.contents || connection.contents.isDestroyed()) {
+            yaplayclose(connection);
+            yaplaysessions.delete(senderid);
+            continue;
+        }
+        if (!paused && now - connection.seen > yaplayexpiry && !yaplaybackground(connection)) {
             yaplayclose(connection);
             yaplaysessions.delete(senderid);
         }
@@ -673,6 +696,7 @@ app.whenReady().then(() => {
             preload: preloadpath,
             contextIsolation: true,
             nodeIntegration: false,
+            backgroundThrottling: false,
             additionalArguments: [`--preload-path=${preloadpath}`]
         }
     });

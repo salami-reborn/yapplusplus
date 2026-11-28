@@ -165,8 +165,13 @@
                     }
                 } finally { connection.running = false; }
             };
-            connection.pagehide = () => this.stop();
-            window.addEventListener('pagehide', connection.pagehide);
+            connection.visible = () => {
+                if (connection.stopped || document.visibilityState !== 'visible') return;
+                connection.pending = true;
+                void tick();
+            };
+            document.addEventListener('visibilitychange', connection.visible);
+            window.addEventListener('pageshow', connection.visible);
             if (this.getNotifications() && typeof window.Notification === 'function') {
                 connection.notification = Object.getOwnPropertyDescriptor(window, 'Notification');
                 connection.wrapper = new Proxy(window.Notification, {
@@ -195,7 +200,8 @@
             connection.stopped = true;
             clearInterval(connection.timer);
             connection.unsubscribe?.();
-            window.removeEventListener('pagehide', connection.pagehide);
+            document.removeEventListener('visibilitychange', connection.visible);
+            window.removeEventListener('pageshow', connection.visible);
             if (connection.wrapper && window.Notification === connection.wrapper) {
                 if (connection.notification) Object.defineProperty(window, 'Notification', connection.notification);
                 else delete window.Notification;
