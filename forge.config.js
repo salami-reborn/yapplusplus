@@ -19,7 +19,12 @@ module.exports = {
     name: 'Yap++',
     executableName: process.platform === "linux" ? "yapplusplus" : undefined,
     icon: path.join(__dirname, "assets", "Icon"),
-    osxSign: { identity: "-", identityValidation: false, continueOnError: false },
+    osxSign: {
+      identity: "-",
+      identityValidation: false,
+      hardenedRuntime: false,
+      continueOnError: false
+    },
     asar: false,
     ignore: [
       /^\/\.git/,

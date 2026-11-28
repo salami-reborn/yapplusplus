@@ -108,6 +108,18 @@ jobs:
         run: |
           npm version "$APP_VERSION" --allow-same-version --no-git-tag-version --ignore-scripts
           npm run make -- --arch="$BUILD_ARCH"
+      - name: Check the macOS app signature and executable
+        if: runner.os == 'macOS'
+        env:
+          APP_VERSION: ${{ needs.prepare.outputs.app_version }}
+          BUILD_ARCH: ${{ matrix.arch }}
+        run: |
+          bundle="out/Yap++-darwin-$BUILD_ARCH/Yap++.app"
+          codesign --verify --deep --strict "$bundle"
+          test "$(ELECTRON_RUN_AS_NODE=1 "$bundle/Contents/MacOS/Yap++" -p 'process.arch')" = "$BUILD_ARCH"
+          test "$(plutil -extract CFBundleShortVersionString raw "$bundle/Contents/Info.plist")" = "$APP_VERSION"
+          icon=$(plutil -extract CFBundleIconFile raw "$bundle/Contents/Info.plist")
+          cmp assets/Icon.icns "$bundle/Contents/Resources/$icon"
       - name: Collect the release asset
         env:
           BUILD_PLATFORM: ${{ matrix.platform }}
